@@ -1,0 +1,14 @@
+{
+    "result_as": "JSON", 
+    "auth_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo0OCwiZXhwIjoxNjY4NTE2Njk2fQ.UFr1LKdXyb9nEHQ1EWyR51GTjeuhXqRY3kcxo4gp_Ng", 
+    "uid": "48", 
+    "device_id": "", 
+    "first_name": "", 
+    "last_name": "", 
+    "gender":"", 
+    "email": "", 
+    "home_phone": "", 
+    "work_phone": "", 
+    "mobile": ""
+ 
+    }

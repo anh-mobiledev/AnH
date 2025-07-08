@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource>
+    <string name="app_name">PersonalAssetManager</string>
+    <string name="facebook_app_id">514709040864433</string>
+    <string name="fb_login_protocol_scheme">fb514709040864433</string>
+    <string name="facebook_client_token">88eb128ddcd10644629ff8bdb2040abc</string>
+</resource>

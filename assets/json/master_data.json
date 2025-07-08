@@ -1,0 +1,24 @@
+{
+"usecases":[
+    {
+        "name": "Estate planning/Executorship",
+        "value": "EP"
+    },
+    {
+        "name":"Insurance inventory",
+        "value": "IN"
+    },
+    {
+        "name":"For sale",
+        "value": "FS"
+    },
+    {
+        "name":"Net worth",
+        "value": "NW"
+    },
+    {
+        "name":"Divorce/Separation",
+        "value": "DS"
+    }
+]
+}
