@@ -1,0 +1,122 @@
+{
+    "breeds":[
+       {
+          "id":0,
+          "img": "https://img.freepik.com/free-vector/girl-with-happy-facial-expression_1308-24889.jpg?w=900&t=st=1676956300~exp=1676956900~hmac=322c18312d0c8dbbcc20efe019ecdb1d4b2c3706da00bd7384fe1dbb05d69af7",
+          "name":"Labrador Retriever",
+          "age":"10-12 Jahre",
+          "height-male":"57 - 62cm",
+          "height-female":"55 - 60cm",
+          "weight-male":"29 - 36kg",
+          "weight-female":"25 - 32kg",
+          "colors":[
+             "schwarz",
+             "braun",
+             "gelb",
+             "gold",
+             "silber",
+             "fox red"
+          ],
+          "temperament":[
+             "Intelligent",
+             "Ausgeglichen",
+             "Nett",
+             "Kontaktfreudig",
+             "Zutraulich",
+             "Agil",
+             "Verspielt"
+          ],
+          "origin":"Neufundland",
+          "positive_description":"Der Labrador ist ein fantastischer Hund, der viele positive Eigenschaften besitzt. Er ist freundlich, gehorsam und intelligent, was ihn zu einem großartigen Begleiter und Familienhund macht. Seine hohe Toleranzschwelle und Geduld machen ihn auch zu einem perfekten Spielkameraden für Kinder und andere Haustiere. Der Labrador ist sehr aktiv und benötigt viel Bewegung und körperliche Aktivität, was dazu beitragen kann, dass seine Besitzer ebenfalls aktiver werden. Er ist loyal und anhänglich und liebt es, Zeit mit seinen Menschen zu verbringen. Insgesamt ist der Labrador ein wunderbarer Hund, der viel Freude, Liebe und Spaß in das Leben seiner Besitzer bringt.",
+          "negative_description":"Der Labrador benötigt viel Bewegung und kann unglücklich und destruktiv werden, wenn er nicht ausreichend beschäftigt und trainiert wird. Sein Jagdinstinkt kann dazu führen, dass er Tiere jagt oder tötet, wenn er nicht gut trainiert und beaufsichtigt wird. Der Labrador neigt dazu, viel zu fressen und kann leicht übergewichtig werden, wenn seine Nahrungsaufnahme nicht kontrolliert wird. Einige Labradors haben genetische Anfälligkeiten für bestimmte Krankheiten, was zu hohen Tierarztkosten führen kann. Daher erfordert die Haltung eines Labradors Verantwortung und Aufmerksamkeit, um sicherzustellen, dass er gesund und glücklich bleibt.",
+          "history":"Der Labrador ist eine Hunderasse, die ihren Ursprung in Neufundland, Kanada hat. Im 19. Jahrhundert wurden die Hunde von britischen Fischern nach Großbritannien gebracht, wo sie sich schnell als hervorragende Jagdhunde etablierten. Sie wurden speziell für die Jagd auf Wasservögel gezüchtet und als Apportierhunde eingesetzt. In den 1920er Jahren wurde der Labrador vom englischen Kennel Club anerkannt und schnell zu einer der beliebtesten Hunderassen weltweit. Heute ist der Labrador bekannt für seine freundliche Persönlichkeit, seine hohe Intelligenz und seine Fähigkeit, als Familienhund und Begleiter zu dienen.",
+          "all_problems":[
+             "Übergewicht durch eine unkontrollierte Nahrungsaufnahme",
+             "Anfälligkeit für einige genetische Krankheiten wie Hüftdysplasie, Ellbogendysplasie, Netzhautdegeneration und Herzerkrankungen und auch Erkrankungen wie Epilepsie",
+             "Jagdinstinkt, der eine kontinuierliche Schulung erfordert, um unerwünschte Verhaltensweisen zu vermeiden",
+             "Hoher Energiebedarf und Bedarf an ausreichender Bewegung und mentaler Stimulation",
+             "Tendenz zur Trennungsangst, wenn sie längere Zeit alleine gelassen werden",
+             "Geringe Hitze- und Kälte-Toleranz, da sie ursprünglich für kalte Gewässer gezüchtet wurden",
+             "Hohe Wahrscheinlichkeit von Gelenkproblemen, wenn sie zu früh oder zu intensiv trainiert werden."
+          ],
+          "image":"lib/img/breeds/labi.png"
+       },
+       {
+          "id":1,
+          "img": "https://img.freepik.com/free-vector/girl-with-happy-facial-expression_1308-24889.jpg?w=900&t=st=1676956300~exp=1676956900~hmac=322c18312d0c8dbbcc20efe019ecdb1d4b2c3706da00bd7384fe1dbb05d69af7",
+          "name":"Golden Retriever",
+          "age":"10-12 Jahre",
+          "height-male":"56 - 61cm",
+          "height-female":"51 - 56cm",
+          "weight-male":"29 - 34kg",
+          "weight-female":"25 - 32kg",
+          "colors":[
+             "Cremefarben",
+             "Gold",
+             "Hellgolden",
+             "Weiß"
+          ],
+          "temperament":[
+             "Intelligent",
+             "Freundlich",
+             "Sanftmütig",
+             "Zutraulich",
+             "Vertrauenswürdig",
+             "Lernfreudig",
+             "Aktiv"
+          ],
+          "origin":"Schottland",
+          "positive_description":"Der Golden Retriever ist ein freundlicher und liebevoller Hund, der für seine Sanftmütigkeit und Intelligenz bekannt ist. Er ist ein ausgezeichneter Familienhund und Begleiter, der es liebt, Zeit mit seinen Menschen zu verbringen. Der Golden Retriever hat eine hohe Lernbereitschaft und ist leicht zu trainieren. Er ist auch ein ausgezeichneter Apportierhund und wurde daher ursprünglich als Jagdhund eingesetzt. Der Golden Retriever ist loyal und anhänglich und hat eine hohe Toleranzschwelle, was ihn zu einem ausgezeichneten Spielgefährten für Kinder und andere Haustiere macht.",
+          "negative_description":"Der Golden Retriever benötigt viel Bewegung und mentale Stimulation, um glücklich und gesund zu bleiben. Er kann unglücklich und destruktiv werden, wenn er nicht ausreichend beschäftigt wird. Der Golden Retriever neigt dazu, viel zu fressen und kann leicht übergewichtig werden, wenn seine Nahrungsaufnahme nicht kontrolliert wird. Einige Golden Retriever haben genetische Anfälligkeiten für bestimmte Krankheiten, was zu hohen Tierarztkosten führen kann. Die Haltung eines Golden Retrievers erfordert daher Verantwortung und Aufmerksamkeit, um sicherzustellen, dass er gesund und glücklich bleibt.",
+          "history":"Der Golden Retriever ist eine Hunderasse, die ihren Ursprung in Schottland hat. Sie wurden im 19. Jahrhundert als Jagdhunde gezüchtet, insbesondere für die Jagd auf Wasservögel. Der Golden Retriever wurde vom britischen Kennel Club im Jahr 1903 offiziell anerkannt und hat sich seitdem zu einer der beliebtesten Hunderassen weltweit entwickelt. Heute ist der Golden Retriever bekannt für seine freundliche Persönlichkeit, seine Intelligenz und seine Fähigkeit, als Familienhund und Begleiter zu dienen.",
+          "all_problems":[
+             "Übergewicht durch eine unkontrollierte Nahrungsaufnahme",
+             "Anfälligkeit für einige genetische Krankheiten wie Hüftdysplasie, Ellbogendysplasie, Netzhautdegeneration und Herzerkrankungen",
+             "Jagdinstinkt, der eine kontinuierliche Schulung erfordert, um unerwünschte Verhaltensweisen zu vermeiden",
+             "Hoher Energiebedarf und Bedarf an ausreichender Bewegung und mentaler Stimulation",
+             "Tendenz zur Trennungsangst, wenn sie längere Zeit alleine gelassen werden",
+             "Geringe Hitze- und Kälte-Toleranz, da sie ursprünglich für kalte Gewässer gezüchtet wurden",
+             "Hohe Wahrscheinlichkeit von Gelenkproblemen, wenn sie zu früh oder zu intensiv trainiert werden."
+          ]
+       },
+       {
+          "id":2,
+          "img": "https://img.freepik.com/free-vector/girl-with-happy-facial-expression_1308-24889.jpg?w=900&t=st=1676956300~exp=1676956900~hmac=322c18312d0c8dbbcc20efe019ecdb1d4b2c3706da00bd7384fe1dbb05d69af7",
+          "name":"Havaneser",
+          "age":"14-16 Jahre",
+          "height-male":"23 - 27cm",
+          "height-female":"21 - 25cm",
+          "weight-male":"3 - 6kg",
+          "weight-female":"3 - 6kg",
+          "colors":[
+             "Weiß",
+             "Schwarz",
+             "Braun",
+             "Grau",
+             "Gescheckt"
+          ],
+          "temperament":[
+             "Fröhlich",
+             "Intelligent",
+             "Anhänglich",
+             "Lebhaft",
+             "Zutraulich",
+             "Lernfreudig",
+             "Aktiv"
+          ],
+          "origin":"Kuba",
+          "positive_description":"Der Havaneser ist ein fröhlicher und intelligenter Hund, der für seine Anhänglichkeit und Lebhaftigkeit bekannt ist. Er ist ein ausgezeichneter Begleiterhund und Familienhund, der es liebt, Zeit mit seinen Menschen zu verbringen. Der Havaneser hat eine hohe Lernbereitschaft und ist leicht zu trainieren. Er ist auch ein ausgezeichneter Hund für Wohnungen und Stadtwohnungen, da er keine hohe körperliche Aktivität benötigt. Der Havaneser ist loyal und anhänglich und hat eine hohe Toleranzschwelle, was ihn zu einem ausgezeichneten Spielgefährten für Kinder und andere Haustiere macht.",
+          "negative_description":"Der Havaneser kann anfällig für Zahnprobleme sein, wenn seine Zähne nicht regelmäßig gepflegt werden. Einige Havaneser können auch an einer Verstopfung des Tränenkanals leiden, was zu Tränenflecken um die Augen führen kann. Der Havaneser kann Trennungsangst entwickeln, wenn er für längere Zeit alleine gelassen wird oder die Trennung vom Besitzer falsch angelernt wird. Die Haltung eines Havanesers erfordert daher Verantwortung und Aufmerksamkeit, um sicherzustellen, dass er gesund und glücklich bleibt.",
+          "history":"Der Havaneser ist eine Hunderasse, die ihren Ursprung in Kuba hat. Sie wurden im 19. Jahrhundert als Begleithunde gezüchtet und waren vor allem bei kubanischen Aristokraten beliebt. Der Havaneser wurde vom American Kennel Club im Jahr 1996 offiziell anerkannt und hat sich seitdem zu einer der beliebtesten kleinen Hunderassen weltweit entwickelt. Heute ist der Havaneser bekannt für seine fröhliche Persönlichkeit, seine Intelligenz und seine Fähigkeit, als Begleithund und Familienhund zu dienen.",
+          "all_problems":[
+             "Zahnprobleme wie Karies und Zahnsteinbildung",
+             "Anfälligkeit für Augenprobleme wie Katarakte und Netzhautatrophie",
+             "Anfälligkeit für Hautprobleme wie Allergien und Hot Spots",
+             "Empfindlichkeit gegenüber Hitze und Kälte",
+             "Neigung zur Trennungsangst, wenn sie längere Zeit alleine gelassen werden",
+             "Geringer Trainingsbedarf und Tendenz, schnell zu langweilen, wenn sie sich wiederholende Aktivitäten ausführen",
+             "Anfälligkeit für Patellaluxation, eine Erkrankung, bei der die Kniescheibe aus ihrer normalen Position springt"
+          ]
+       }
+    ]
+ }
