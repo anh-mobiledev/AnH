@@ -1,9 +1,0 @@
-{
-    "success": true,
-    "auth_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjo0OCwiZXhwIjoxNDQxNzAwNTc0fQ.OMToHVYTDeErt22YOuGe939QlaK4IHBScgZzkLbZ-68",
-    "message": "User added successfully",
-    "data": {
-        "username": "sureshtheradiyan",
-        "uid": "83920292983"
-    }
-}
