@@ -3,6 +3,7 @@ class CollectionItemsServer {
   String? authToken;
   String? action;
   String? message;
+  String? collectionId;
 
   late List<CollectionItemsModel> _collectionItems;
   List<CollectionItemsModel> get collectionItems => _collectionItems;
@@ -12,10 +13,12 @@ class CollectionItemsServer {
       required authToken,
       required action,
       required message,
+      required collectionId,
       required collectionItemsIndex}) {
     this.success = success;
     this.authToken = authToken;
     this.message = message;
+    this.collectionId = collectionId;
     this._collectionItems = collectionItemsIndex;
   }
 
@@ -24,6 +27,7 @@ class CollectionItemsServer {
     authToken = json['auth_token'];
     action = json['action'];
     message = json['message'];
+    collectionId = json['collection_id'];
     if (json['collection_items'] != null) {
       _collectionItems = <CollectionItemsModel>[];
       json['collection_items'].forEach((v) {
@@ -31,23 +35,11 @@ class CollectionItemsServer {
       });
     }
   }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['auth_token'] = this.authToken;
-    data['action'] = this.action;
-    data['message'] = this.message;
-    if (this.collectionItems != null) {
-      data['collection_items'] =
-          this.collectionItems.map((v) => v.toJson()).toList();
-    }
-    return data;
-  }
 }
 
 class CollectionItemsModel {
-  String? id;
+  int? collectionItemId;
+  String? myItemId;
   String? name;
   String? description;
   String? valueAmount;
@@ -59,7 +51,8 @@ class CollectionItemsModel {
   String? keywords;
 
   CollectionItemsModel({
-    this.id,
+    this.collectionItemId,
+    this.myItemId,
     this.name,
     this.description,
     this.valueAmount,
@@ -72,7 +65,9 @@ class CollectionItemsModel {
   });
 
   CollectionItemsModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    collectionItemId = json['collection_item_id'];
+
+    myItemId = json['myitem_id'];
 
     if (json['name'] == null) {
       name = "NA";
@@ -130,15 +125,5 @@ class CollectionItemsModel {
     } else {
       keywords = json['keywords'];
     }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['value_amt'] = this.valueAmount;
-    data['primary_img_url'] = this.primary_img_url;
-    return data;
   }
 }

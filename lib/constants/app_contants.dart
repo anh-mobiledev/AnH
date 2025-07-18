@@ -26,6 +26,7 @@ class AppConstants {
 //Add, Edit, List item details
   static const String ADD_ITEM_URI = "/myitems";
   static const String EDIT_ITEM_URI = "/myitems/";
+  static const String DEL_ITEM_URI = "/myitems/";
   static const String LIST_ITEM_URI = "/myitems.json";
 
   static const String ADD_ITEM_ATTCH_URI = "/attachments";
@@ -47,8 +48,12 @@ class AppConstants {
 //My Collection
   static const String COLLECTIONS_LIST_URI = "/collections";
   static const String COLLECTION_CREATE_URI = "/collections";
+  static const String COLLECTION_DEL_URI = "/collections/";
+
+  //Collections item
   static const String COLLECTIOS_ITEM_LIST_URI = "/collection_items";
   static const String COLLECTION_ITEM_CREATE_URI = "/collection_items";
+  static const String COLLECTION_ITEM_DEL_URI = "/collection_items/";
 
   //Get myitems
   static const String MYITEMS_LIST_URI = "/myitems";

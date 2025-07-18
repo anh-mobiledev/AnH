@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:pam_app/constants/colours.dart';
 import 'package:pam_app/controllers/my_collections_controller.dart';
 import 'package:pam_app/helper/DBHelper.dart';
+import 'package:pam_app/models/my_collections_server_model.dart';
 import 'package:pam_app/screens/myCollections/add_parent_collection_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../common/alert.dart';
 import '../../constants/dimensions.dart';
 import '../../screens/myCollections/child_collection_list_screen.dart';
 
@@ -22,6 +25,7 @@ class _ParentCollectionsListFormState extends State<ParentCollectionsListForm> {
 
   DBHelper dbHelper = new DBHelper();
   late SharedPreferences sharedPreferences;
+  List<CollectionsServerModel> _collections = [];
 
   @override
   void initState() {
@@ -31,7 +35,9 @@ class _ParentCollectionsListFormState extends State<ParentCollectionsListForm> {
   }
 
   _loadCollections() async {
-    await Get.find<MyCollectionsController>().getCollectionsList();
+    await Get.find<MyCollectionsController>().getCollectionsList().then((__) {
+      _collections = myCollectionController.myCollectionsIndexList;
+    });
   }
 
   @override
@@ -106,37 +112,59 @@ class _ParentCollectionsListFormState extends State<ParentCollectionsListForm> {
                               top: Dimensions.height20),
                           child: ListView.builder(
                             padding: const EdgeInsets.all(10.0),
-                            itemCount: controller.myCollectionsIndexList == null
-                                ? 0
-                                : controller.myCollectionsIndexList.length,
+                            itemCount:
+                                _collections == null ? 0 : _collections.length,
                             // controller.parentCollectionsIndexList.length,
                             shrinkWrap: true,
                             itemBuilder: (BuildContext context, int index) {
-                              return Card(
-                                  child: InkWell(
-                                onTap: () {
-                                  Navigator.of(context).pushNamed(
-                                      ChildCollectionsListScreen.screenId,
-                                      arguments: {
-                                        'collectionId': controller
-                                            .myCollectionsIndexList[index].id,
-                                        'name': controller
-                                            .myCollectionsIndexList[index].name
-                                      });
-                                },
-                                child: ListTile(
-                                    /* leading: Icon(IconData(
+                              final myCollections = _collections[index];
+                              return Slidable(
+                                key: ValueKey(myCollections),
+                                endActionPane: ActionPane(
+                                  motion: ScrollMotion(),
+                                  dismissible: DismissiblePane(
+                                    onDismissed: () => _showDeleteConfirmDialog(
+                                        context, index),
+                                  ),
+                                  children: [
+                                    SlidableAction(
+                                      onPressed: (context) =>
+                                          _showDeleteConfirmDialog(
+                                              context, index),
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.delete,
+                                      label: 'Delete',
+                                    ),
+                                  ],
+                                ),
+                                child: Card(
+                                    child: InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).pushNamed(
+                                        ChildCollectionsListScreen.screenId,
+                                        arguments: {
+                                          'collectionId': controller
+                                              .myCollectionsIndexList[index].id,
+                                          'name': controller
+                                              .myCollectionsIndexList[index]
+                                              .name
+                                        });
+                                  },
+                                  child: ListTile(
+                                      /* leading: Icon(IconData(
+                                          controller.myCollectionsIndexList[index]
+                                              .iconId!,
+                                          fontFamily: 'MaterialIcons')),*/
+                                      leading: Icon(Icons.comment),
+                                      title: Text(controller
+                                          .myCollectionsIndexList[index].name!),
+                                      subtitle: Text(
                                         controller.myCollectionsIndexList[index]
-                                            .iconId!,
-                                        fontFamily: 'MaterialIcons')),*/
-                                    leading: Icon(Icons.comment),
-                                    title: Text(controller
-                                        .myCollectionsIndexList[index].name!),
-                                    subtitle: Text(
-                                      controller.myCollectionsIndexList[index]
-                                          .description!,
-                                    )),
-                              ));
+                                            .description!,
+                                      )),
+                                )),
+                              );
                             },
                           ),
                         ),
@@ -237,5 +265,52 @@ class _ParentCollectionsListFormState extends State<ParentCollectionsListForm> {
                   },
                 ),
               );)*/
+  }
+
+  Dialogs alert = Dialogs();
+  Future<void> _showDeleteConfirmDialog(BuildContext context, int index) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap a button
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Delete'),
+          content: Text('Are you sure you want to delete this collection?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+            TextButton(
+              child: Text('Delete'),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: () {
+                // Call your delete function here
+                myCollectionController
+                    .deleteCollectionController(_collections[index].id!)
+                    .then((result) {
+                  if (result.isSuccess) {
+                    setState(() {
+                      _collections.removeAt(index); // ✅ Remove deleted item
+                    });
+
+                    Navigator.of(context).pop(true);
+                    //Navigator.pop(context, true);
+                  } else {
+                    alert.showAlertDialog(
+                        context, "Delete collection", result.message);
+                  }
+                });
+                // _deleteItem(index);
+                //  Navigator.of(context).pop(); // Dismiss the dialog
+                // Optionally show a snackbar or toast
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

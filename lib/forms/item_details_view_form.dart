@@ -134,7 +134,29 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
     'Select value units',
     'USD',
     'EUR',
-    'JPY'
+    'GBP',
+    'INR',
+    'JPY',
+    'CNY',
+    'AUD',
+    'CAD',
+    'CHF',
+    'NZD',
+    'SEK',
+    'NOK',
+    'RUB',
+    'BRL',
+    'ZAR',
+    'MXN',
+    'SGD',
+    'HKD',
+    'KRW',
+    'AED',
+    'SAR',
+    'TRY',
+    'IDR',
+    'MYR',
+    'THB'
   ];
 
   final List<String> _additionalOptions = [
@@ -342,6 +364,130 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
     return compressedVideo?.file;
   }
 
+  File? compressedFile;
+  File? thumbnail;
+  final ImagePicker _picker = ImagePicker();
+  double _compressionProgress = 0.0;
+  StreamSubscription<double>? _subscription;
+  final List<_MediaItem> _mediaItems = [];
+
+  Future<void> _pickMedia(ImageSource source, {required bool isVideo}) async {
+    final XFile? picked = isVideo
+        ? await _picker.pickVideo(source: source)
+        : await _picker.pickImage(source: source);
+
+    if (picked == null) return;
+
+    final mimeType = lookupMimeType(picked.path);
+    if (mimeType == null) return;
+
+    File originalFile = File(picked.path);
+
+    if (mimeType.startsWith("video")) {
+      // Listen to compression progress
+      VideoCompress.compressProgress$.subscribe((progress) {
+        setState(() {
+          _compressionProgress = progress;
+        });
+      });
+
+      final info = await VideoCompress.compressVideo(
+        originalFile.path,
+        quality: VideoQuality.MediumQuality,
+        deleteOrigin: false,
+      );
+
+      compressedFile = info?.file ?? originalFile;
+
+      // Generate thumbnail explicitly here:
+      final thumbPath = await VideoThumbnail.thumbnailFile(
+        video: compressedFile!.path,
+        imageFormat: ImageFormat.JPEG,
+        quality: 75,
+      );
+      if (thumbPath != null) thumbnail = File(thumbPath);
+
+      // Cancel subscription after compression finishes
+      await _subscription?.cancel();
+      _subscription = null;
+
+      int videoFormat = 0;
+      if (_isVideo(compressedFile!.path)) {
+        videoFormat = 4;
+      }
+
+      String? contentType = getMimeType(compressedFile!.path);
+      print("${contentType}");
+
+      itemController
+          .addMyItemMediaAsAttachment(itemId!, videoFormat, contentType!,
+              "false", File(compressedFile!.path))
+          .then(
+        (result) {
+          if (result.isSuccess) {
+            Navigator.pop(context, true);
+          }
+        },
+      );
+    } else {
+      compressedFile = await compressImage(originalFile);
+      thumbnail = compressedFile;
+
+      String? fileFormat = await getImageFormat(compressedFile!.path);
+      int finalFileFormat = 0;
+
+      switch (fileFormat!.toLowerCase()) {
+        case "jpg":
+          finalFileFormat = 1;
+          break;
+        case "jpeg":
+          finalFileFormat = 2;
+          break;
+        case "png":
+          finalFileFormat = 3;
+          break;
+        case "gif":
+          finalFileFormat = 4;
+          break;
+        case "bmp":
+          finalFileFormat = 5;
+          break;
+        case "webp":
+          finalFileFormat = 6;
+          break;
+        default:
+      }
+      print("${finalFileFormat}");
+
+      String? contentType = getMimeType(compressedFile!.path);
+      print("${contentType}");
+
+      await itemController
+          .addMyItemMediaAsAttachment(itemId!, finalFileFormat, contentType!,
+              "false", File(compressedFile!.path))
+          .then(
+        (result) {
+          if (result.isSuccess) {
+            Navigator.pop(context, true);
+          }
+        },
+      );
+    }
+
+    if (compressedFile == null || thumbnail == null) return;
+
+    setState(() {
+      _mediaItems.add(_MediaItem(
+        file: compressedFile!,
+        thumbnail: thumbnail!,
+        isVideo: mimeType.startsWith("video"),
+      ));
+      _btnEnabled = true;
+      _compressionProgress = 0.0; // reset progress
+    });
+  }
+
+/*
   pickVideo(ImageSource source) async {
     final videoFile = await imagePicker.pickVideo(source: source);
 
@@ -416,7 +562,7 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
         String? contentType = getMimeType(compresssedImg.path);
         print("${contentType}");
 
-        itemController
+        await itemController
             .addMyItemMediaAsAttachment(itemId!, finalFileFormat, contentType!,
                 "false", File(compresssedImg.path))
             .then((result) {
@@ -437,6 +583,7 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
       return null;
     }
   }
+*/
 
   bool _isVideo(String path) {
     final videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.3gp'];
@@ -487,7 +634,7 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
                   SizedBox(height: Dimensions.height10),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -499,7 +646,10 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
                                 height: 50,
                                 child: GestureDetector(
                                   onTap: () async {
-                                    await pickImage(ImageSource.camera);
+                                    // await pickImage(ImageSource.camera);
+
+                                    _pickMedia(ImageSource.camera,
+                                        isVideo: false);
                                   },
                                   child: Icon(Icons.camera_enhance,
                                       size: 50, color: AppThemeColor),
@@ -507,8 +657,16 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
                               ),
                               SizedBox(
                                 height: 20,
-                                width: 100,
-                                child: Text("Take another photo"),
+                                width: 80,
+                                child: Center(
+                                  child: Text(
+                                    "Take  photo",
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal,
+                                        color: AppThemeColor),
+                                  ),
+                                ),
                               )
                             ],
                           ),
@@ -518,16 +676,27 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
                                 height: 50,
                                 child: GestureDetector(
                                   onTap: () {
-                                    pickImage(ImageSource.gallery);
+                                    // pickImage(ImageSource.gallery);
+                                    _pickMedia(ImageSource.gallery,
+                                        isVideo: false);
                                   },
                                   child: Icon(Icons.browse_gallery_outlined,
                                       size: 50, color: AppThemeColor),
                                 ),
                               ),
                               SizedBox(
-                                  height: 20,
-                                  width: 100,
-                                  child: Text("Upload another photo")),
+                                height: 20,
+                                width: 80,
+                                child: Center(
+                                  child: Text(
+                                    "Upload photo",
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal,
+                                        color: AppThemeColor),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           Column(
@@ -536,7 +705,9 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
                                 height: 50,
                                 child: GestureDetector(
                                   onTap: () {
-                                    pickVideo(ImageSource.camera);
+                                    //pickVideo(ImageSource.camera);
+                                    _pickMedia(ImageSource.camera,
+                                        isVideo: true);
                                   },
                                   child: Icon(Icons.video_file_outlined,
                                       size: 50, color: AppThemeColor),
@@ -544,13 +715,44 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
                               ),
                               SizedBox(
                                 height: 20,
-                                width: 100,
-                                child: Text(
-                                  "Record a video",
-                                  style: TextStyle(
-                                      fontSize: Dimensions.font16,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppThemeColor),
+                                width: 80,
+                                child: Center(
+                                  child: Text(
+                                    "Record video",
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal,
+                                        color: AppThemeColor),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              SizedBox(
+                                height: 50,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    //pickVideo(ImageSource.camera);
+                                    _pickMedia(ImageSource.gallery,
+                                        isVideo: true);
+                                  },
+                                  child: Icon(Icons.video_file_outlined,
+                                      size: 50, color: AppThemeColor),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20,
+                                width: 80,
+                                child: Center(
+                                  child: Text(
+                                    "Upload video",
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal,
+                                        color: AppThemeColor),
+                                  ),
                                 ),
                               )
                             ],
@@ -589,6 +791,11 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
                           },
                         ),
                       ),
+                      if (_compressionProgress > 0 &&
+                          _compressionProgress < 100)
+                        LinearProgressIndicator(
+                          value: _compressionProgress / 100,
+                        ),
                       SizedBox(
                         height: Dimensions.height15,
                       ),
@@ -1217,7 +1424,7 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
               }
             },
           ),
-          Container(
+          /* Container(
             padding: EdgeInsets.only(
                 left: Dimensions.width20,
                 right: Dimensions.width20,
@@ -1234,7 +1441,7 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
                 iconColor: Colors.white,
               ),
             ),
-          )
+          )*/
         ],
       ),
     );
@@ -1323,4 +1530,13 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
       },
     );
   }
+}
+
+class _MediaItem {
+  final File file;
+  final File thumbnail;
+  final bool isVideo;
+
+  _MediaItem(
+      {required this.file, required this.thumbnail, required this.isVideo});
 }

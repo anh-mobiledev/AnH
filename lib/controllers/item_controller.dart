@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'package:pam_app/models/delete_myitem_failure_response.dart';
 import 'package:pam_app/models/item_details_create_body.dart';
 import 'package:pam_app/models/item_image.dart';
 import 'package:pam_app/models/item_info_sqllite.dart';
@@ -36,6 +38,9 @@ class ItemController extends GetxController {
   List<MyitemImgsModel> _myItemAttachmentsListIndexServer = [];
   List<MyitemImgsModel> get myItemAttachmentsListIndexServer =>
       _myItemAttachmentsListIndexServer;
+
+  List<ReferenceCollections> _refCollections = [];
+  List<ReferenceCollections> get refCollections => _refCollections;
 
   bool _isLoaded = false;
   bool get isLoaded => _isLoaded;
@@ -75,12 +80,17 @@ class ItemController extends GetxController {
 
       //addItemRepo.saveUserToken(response.body["auth_token"]);
 
-      responseModel = ResponseModel(true, response.body["auth_token"], "");
+      responseModel = ResponseModel(
+          true, response.body["auth_token"], response.body['message']);
+
+      _isLoaded = true;
+      update();
     } else {
-      responseModel = ResponseModel(false, response.statusText!, "");
+      responseModel = ResponseModel(
+          false, response.body["auth_token"], response.body['message']);
+      _isLoaded = false;
     }
 
-    update();
     return responseModel;
   }
 
@@ -153,18 +163,25 @@ class ItemController extends GetxController {
 
     if (response['success']) {
       _myItemId = response["myitem"][0]["id"];
+      print(_myItemId);
 
-      print(response["auth_token"]);
+      await storage.write(key: 'myItemId', value: response["myitem"][0]["id"]);
+      //print(response["auth_token"]);
 
       //  addItemRepo.saveUserToken(response["auth_token"]);
       await storage.write(key: 'app_token', value: response["auth_token"]);
 
       responseModel =
           ResponseModel(true, response["auth_token"], response["message"]);
+
+      _isLoaded = true;
+      update();
     } else {
-      responseModel = ResponseModel(false, response["messge"], "");
+      _isLoaded = false;
+      responseModel =
+          ResponseModel(false, response["auth_token"], response["message"]);
     }
-    update();
+
     return responseModel;
   }
 
@@ -200,10 +217,13 @@ class ItemController extends GetxController {
 
       responseModel =
           ResponseModel(true, response["auth_token"], response["message"]);
+      _isLoaded = true;
+      update();
     } else {
+      _isLoaded = false;
       responseModel = ResponseModel(false, response["messge"], "");
     }
-    update();
+
     return responseModel;
   }
 
@@ -381,6 +401,51 @@ class ItemController extends GetxController {
     } else {
       responseModel = ResponseModel(false, response.statusText!, "");
       _isLoaded = false;
+    }
+
+    return responseModel;
+  }
+
+  Future<ResponseModel> deleteMyitemController(String myItemId) async {
+    //App token
+    final appToken = await storage.read(key: 'app_token');
+    String? token;
+
+    //Firebase token
+    if (appToken == null) {
+      token = await Auth.getIdToken();
+    } else {
+      token = appToken;
+    }
+
+    print('myItemId${myItemId}');
+
+    String responseString =
+        await addItemRepo.deleteMyItemRepo(myItemId, token!);
+
+    Map<String, dynamic> jsonObject = jsonDecode(responseString);
+
+    late ResponseModel responseModel;
+
+    if (jsonObject['success'] == true) {
+      await storage.write(key: 'app_token', value: jsonObject['auth_token']);
+
+      responseModel =
+          ResponseModel(true, jsonObject['auth_token'], jsonObject['message']);
+
+      _isLoaded = true;
+
+      update();
+    } else {
+      await storage.write(key: 'app_token', value: jsonObject['auth_token']);
+      responseModel = ResponseModel(false, "", jsonObject['message']);
+
+      _refCollections = [];
+      _refCollections.addAll(
+          DeleteMyItemFailureResponse.fromJson(jsonObject).refCollections!);
+
+      _isLoaded = true;
+      update();
     }
 
     return responseModel;

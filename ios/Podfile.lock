@@ -1188,6 +1188,7 @@ PODS:
     - abseil/meta/type_traits
     - abseil/xcprivacy
   - abseil/xcprivacy (1.20240722.0)
+  - Alamofire (5.2.2)
   - AppAuth (1.7.6):
     - AppAuth/Core (= 1.7.6)
     - AppAuth/ExternalUserAgent (= 1.7.6)
@@ -1380,6 +1381,9 @@ PODS:
   - flutter_native_splash (2.4.3):
     - Flutter
   - flutter_secure_storage (6.0.0):
+    - Flutter
+  - flutter_uploader (1.2.0):
+    - Alamofire (= 5.2.2)
     - Flutter
   - fluttercontactpicker (4.6.0):
     - Flutter
@@ -1614,6 +1618,7 @@ DEPENDENCIES:
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
+  - flutter_uploader (from `.symlinks/plugins/flutter_uploader/ios`)
   - fluttercontactpicker (from `.symlinks/plugins/fluttercontactpicker/ios`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
@@ -1636,6 +1641,7 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - abseil
+    - Alamofire
     - AppAuth
     - AppCheckCore
     - BoringSSL-GRPC
@@ -1712,6 +1718,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_native_splash/ios"
   flutter_secure_storage:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
+  flutter_uploader:
+    :path: ".symlinks/plugins/flutter_uploader/ios"
   fluttercontactpicker:
     :path: ".symlinks/plugins/fluttercontactpicker/ios"
   geocoding_ios:
@@ -1751,6 +1759,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   abseil: a05cc83bf02079535e17169a73c5be5ba47f714b
+  Alamofire: 814429acc853c6c54ff123fc3d2ef66803823ce0
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
@@ -1792,6 +1801,7 @@ SPEC CHECKSUMS:
   flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
   flutter_native_splash: 6cad9122ea0fad137d23137dd14b937f3e90b145
   flutter_secure_storage: 2c2ff13db9e0a5647389bff88b0ecac56e3f3418
+  flutter_uploader: 584366b7a28d78e0679521c59af2e8bbb7fa7216
   fluttercontactpicker: 80c7145a181c97ee8ce6db0773750a6ff9c44099
   geocoding_ios: 86f1c479822f07a2f79f7094f2b753d1e9e20215
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e

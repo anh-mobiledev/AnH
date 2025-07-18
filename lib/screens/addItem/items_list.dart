@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:pam_app/screens/addItem/add_item_images.dart';
 
 import '../../constants/colours.dart';
 import '../../forms/items_list_form.dart';
@@ -48,21 +49,30 @@ class _ItemsListScreenState extends State<ItemsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: AppColors.secondaryColor,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).pushNamed(HomeScreen.screenId);
-            },
-          ),
-          title: Text(
-            'Items list',
-            style: TextStyle(color: AppColors.whiteColor),
-          ),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: AppColors.secondaryColor,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pushNamed(HomeScreen.screenId);
+          },
         ),
-        body: _body());
+        title: Text(
+          'Items list',
+          style: TextStyle(color: AppColors.whiteColor),
+        ),
+      ),
+      body: _body(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).pushNamed(AddItemImagesScreen.screenId);
+        },
+        child: Icon(Icons.add), // You can use any icon
+        tooltip: 'Add items',
+        backgroundColor: Colors.blue, // Optional customization
+      ),
+    );
   }
 
   _body() {

@@ -50,6 +50,15 @@ class AuthRepo extends GetxService {
     });
   }
 
+  Future<Response> verifyFirebaseIdTokenRepo(
+      String firebaseTokenId, String firebaseUserId) async {
+    return await apiClient.postData(AppConstants.BASE_URL, {
+      'result_as': 'JSON',
+      'firebase_token': firebaseTokenId,
+      'firebase_uid': firebaseUserId
+    });
+  }
+
   /// Update the user location
   Future<Response> AddUserLocation(
       String token,

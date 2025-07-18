@@ -1,19 +1,24 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:pam_app/constants/colours.dart';
 import 'package:pam_app/constants/dimensions.dart';
 import 'package:pam_app/controllers/item_controller.dart';
 import 'package:pam_app/controllers/my_collections_controller.dart';
-import 'package:pam_app/forms/item_details_view_form.dart';
-import 'package:pam_app/forms/myCollections/share_bottom_sheet.dart';
+
 import 'package:pam_app/helper/DBHelper.dart';
 import 'package:pam_app/models/collection_items_server_model.dart';
 import 'package:pam_app/models/my_items_server_model.dart';
+import 'package:pam_app/screens/addItem/VideoPlayerScreen.dart';
 import 'package:pam_app/screens/addItem/item_details_view.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../common/alert.dart';
 
@@ -71,21 +76,21 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
     });
   }
 
-  void _shareItem(String item) {
-    // Implement your sharing logic
+  void _shareItem({
+    required String name,
+    required String price,
+    required String description,
+    required String imageUrl,
+  }) {
+    final message = '''
+    Check out this product!
 
-    Share.share('Check out this product!\n ${item}');
-
-    /*showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => ShareBottomSheet(
-        shareText: 'Check out this product!',
-        shareUrl: 'https://yourapp.com/product?${item}',
-      ),
-    );*/
+    Name: $name
+    Price: $price
+    Description: $description
+    Image: $imageUrl
+    ''';
+    Share.share(message);
   }
 
   void _moreOptions(String item) {
@@ -107,8 +112,6 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Container(
-            width: 150.0,
-            height: 50.0,
             child: Align(
               alignment: Alignment.topRight,
               child: SizedBox(
@@ -124,19 +127,9 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
                           borderRadius: BorderRadius.circular(50),
                           side: BorderSide(color: AppColors.secondaryColor)),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
+                      alert.showLoaderDialog(context);
                       createDialog();
-
-                      /* Navigator.of(context).pushNamed(
-                        AddChildCollectionScreen.screenId,
-                        arguments: {
-                          'action': 'add',
-                          'collectionId': collectionId,
-                          'title': parent_name,
-                          'child_name': "",
-                          'current_value': ""
-                        },
-                      );*/
                     },
                     child: Icon(
                       Icons.add,
@@ -198,20 +191,18 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
                                   children: [
                                     SlidableAction(
                                       onPressed: (context) => _shareItem(
-                                          child_collections.primary_img_url!),
+                                          name: child_collections.name!,
+                                          description:
+                                              child_collections.description! ??
+                                                  'NA',
+                                          price: child_collections.valueAmount!,
+                                          imageUrl: child_collections
+                                              .primary_img_url!),
                                       backgroundColor: Colors.blue,
                                       foregroundColor: Colors.white,
                                       icon: Icons.share,
                                       label: 'Share',
                                     ),
-                                    /*  SlidableAction(
-                                      onPressed: (context) =>
-                                          _moreOptions(child_collections.name!),
-                                      backgroundColor: Colors.orange,
-                                      foregroundColor: Colors.white,
-                                      icon: Icons.more_horiz,
-                                      label: 'More',
-                                    ),*/
                                     SlidableAction(
                                       onPressed: (context) =>
                                           _showDeleteConfirmDialog(
@@ -228,7 +219,7 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
                                     onTap: () {
                                       MyItemsServerModel arguments =
                                           MyItemsServerModel(
-                                        id: _collectionItems[index].id,
+                                        id: _collectionItems[index].myItemId,
                                         name: _collectionItems[index].name,
                                         description:
                                             _collectionItems[index].description,
@@ -252,16 +243,68 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
                                           arguments: arguments);
                                     },
                                     child: ListTile(
-                                      leading: CachedNetworkImage(
-                                          imageUrl: _collectionItems[index]
-                                              .primary_img_url!,
-                                          height: Dimensions.height30 * 2,
-                                          width: Dimensions.width30 * 2,
-                                          fit: BoxFit.fill,
-                                          placeholder: (context, url) =>
-                                              CircularProgressIndicator(),
-                                          errorWidget: (context, url, error) =>
-                                              Icon(Icons.error)),
+                                      leading: FutureBuilder<ImageProvider?>(
+                                        future: _getThumbnailImage(
+                                            _collectionItems[index]
+                                                .primary_img_url!),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const SizedBox(
+                                              height: 60,
+                                              width: 60,
+                                              child: Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          strokeWidth: 2)),
+                                            );
+                                          }
+
+                                          if (snapshot.hasData &&
+                                              snapshot.data != null) {
+                                            return Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  child: Image(
+                                                    image: snapshot.data!,
+                                                    height: 60,
+                                                    width: 60,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                ),
+                                                if (_isVideo(
+                                                    _collectionItems[index]
+                                                        .primary_img_url!))
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (_) =>
+                                                              VideoPlayerScreen(
+                                                                  videoUrl: (_collectionItems[
+                                                                          index]
+                                                                      .primary_img_url!)),
+                                                        ),
+                                                      );
+                                                    },
+                                                    child: const Icon(
+                                                        Icons.play_circle_fill,
+                                                        color: Colors.white70,
+                                                        size: 24),
+                                                  ),
+                                              ],
+                                            );
+                                          } else {
+                                            return const Icon(
+                                                Icons.broken_image,
+                                                size: 60);
+                                          }
+                                        },
+                                      ),
                                       title:
                                           Text(_collectionItems[index].name!),
                                       subtitle: Text(_collectionItems[index]
@@ -295,126 +338,189 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
   var collectionController = Get.find<MyCollectionsController>();
   var itemController = Get.find<ItemController>();
 
+  List<MyItemsServerModel> _filteredItems = [];
+
+  void _filterList(
+      String query, void Function(void Function()) dialogSetState) {
+    final allItems = Get.find<ItemController>().myItemsIndexListServer;
+
+    final filltered = allItems.where((item) {
+      return item.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
+    }).toList();
+
+    dialogSetState(
+      () {
+        _filteredItems = filltered;
+      },
+    );
+  }
+
   //My Items list
   createDialog() async {
     await Get.find<ItemController>().getMyItemsListServer();
 
-    _isChecked =
-        List<bool>.filled(itemController.myItemsIndexListServer.length, false);
+    _isChecked = List<bool>.filled(
+      itemController.myItemsIndexListServer.length,
+      false,
+    );
+
+    Navigator.pop(context);
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (context, dialogSetState) {
             return AlertDialog(
               title: const Text('Your Items'),
-              actions: <Widget>[
+              actions: [
                 TextButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
                 TextButton(
-                  onPressed: () {
-                    collectionController
-                        .collectionItemCreate(
-                            collectionId!,
-                            isCheckedIds
-                                .toString()
-                                .replaceAll('[', '')
-                                .replaceAll(']', ''),
-                            "",
-                            "",
-                            "",
-                            "",
-                            "",
-                            "")
-                        .then((status) {
-                      if (status.isSuccess) {
-                        _loadCollectionItems();
-                        Navigator.pop(context);
-                      }
-                    });
-
-                    print(isCheckedIds);
+                  onPressed: () async {
+                    confirmDialog();
                   },
                   child: const Text('Save'),
                 ),
               ],
               content: GetBuilder<ItemController>(
                 builder: (controller) {
-                  return controller.isLoaded
-                      ? Container(
-                          width: Dimensions.screenWidth,
-                          height: Dimensions.screenHeight,
+                  if (!controller.isLoaded) {
+                    return const SizedBox(
+                      height: 200,
+                      child: Center(
+                        child: Text(
+                          "No records found",
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (_filteredItems == null || _filteredItems!.isEmpty) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      dialogSetState(() {
+                        _filteredItems =
+                            List.from(controller.myItemsIndexListServer);
+                      });
+                    });
+                  }
+
+                  return SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: "Search by name",
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.search),
+                            ),
+                            onChanged: ((value) {
+                              _filterList(value, dialogSetState);
+                            }),
+                          ),
+                        ),
+                        Flexible(
                           child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: controller.myItemsIndexListServer == null
-                                ? 0
-                                : controller.myItemsIndexListServer.length,
+                            itemCount: _filteredItems?.length ?? 0,
                             itemBuilder: (context, index) {
+                              final item = _filteredItems[index];
                               return Card(
                                 child: InkWell(
-                                  onTap: () {},
+                                  onTap: () {
+                                    Navigator.of(context).pushNamed(
+                                      ItemDetailsViewScreen.screenId,
+                                      arguments: item,
+                                    );
+                                  },
                                   child: ListTile(
-                                    leading: CachedNetworkImage(
-                                        imageUrl: controller
-                                            .myItemsIndexListServer[index]
-                                            .primary_img_url!,
-                                        height: Dimensions.height30 * 2,
-                                        width: Dimensions.width30 * 2,
-                                        fit: BoxFit.fill,
-                                        placeholder: (context, url) =>
-                                            CircularProgressIndicator(),
-                                        errorWidget: (context, url, error) =>
-                                            Icon(Icons.error)),
-                                    trailing: Checkbox(
-                                      side: MaterialStateBorderSide.resolveWith(
-                                          (_) => const BorderSide(
-                                              width: 1, color: AppThemeColor)),
-                                      fillColor: MaterialStateProperty.all(
-                                          AppColors.primaryColor),
-                                      value: isCheckedIds.contains(controller
-                                              .myItemsIndexListServer[index].id)
-                                          ? true
-                                          : false,
-                                      onChanged: (value) {
-                                        if (value!) {
-                                          setState(() {
-                                            confirmDialog(controller
-                                                .myItemsIndexListServer[index]
-                                                .id!);
-                                            isCheckedIds.add(controller
-                                                .myItemsIndexListServer[index]
-                                                .id!);
-                                          });
+                                    leading: FutureBuilder<ImageProvider?>(
+                                      future: _getThumbnailImage(
+                                          item.primary_img_url!),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return const SizedBox(
+                                            height: 60,
+                                            width: 60,
+                                            child: Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                        strokeWidth: 2)),
+                                          );
+                                        }
+
+                                        if (snapshot.hasData &&
+                                            snapshot.data != null) {
+                                          return Stack(
+                                            alignment: Alignment.center,
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                child: Image(
+                                                  image: snapshot.data!,
+                                                  height: 60,
+                                                  width: 60,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              if (_isVideo(
+                                                  item.primary_img_url!))
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            VideoPlayerScreen(
+                                                                videoUrl: (item
+                                                                    .primary_img_url!)),
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: const Icon(
+                                                      Icons.play_circle_fill,
+                                                      color: Colors.white70,
+                                                      size: 24),
+                                                ),
+                                            ],
+                                          );
                                         } else {
-                                          setState(() {
-                                            isCheckedIds.remove(controller
-                                                .myItemsIndexListServer[index]
-                                                .id);
-                                          });
+                                          return const Icon(Icons.broken_image,
+                                              size: 60);
                                         }
                                       },
                                     ),
-                                    title: Text(controller
-                                        .myItemsIndexListServer[index].name!),
-                                    subtitle: Text(
-                                      controller.myItemsIndexListServer[index]
-                                          .valueAmount
-                                          .toString(),
+                                    trailing: Checkbox(
+                                      value: isCheckedIds.contains(item.id),
+                                      onChanged: (value) {
+                                        dialogSetState(() {
+                                          if (value!) {
+                                            isCheckedIds.add(item.id!);
+                                          } else {
+                                            isCheckedIds.remove(item.id);
+                                          }
+                                        });
+                                      },
                                     ),
+                                    title: Text(item.name ?? ''),
+                                    subtitle: Text(item.valueAmount ?? ''),
                                   ),
                                 ),
                               );
                             },
                           ),
-                        )
-                      : CircularProgressIndicator(
-                          color: AppColors.primaryColor,
-                        );
+                        ),
+                      ],
+                    ),
+                  );
                 },
               ),
             );
@@ -425,7 +531,7 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
   }
 
   Dialogs alert = Dialogs();
-  Future<void> confirmDialog(String id) async {
+  Future<void> confirmDialog() async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -436,7 +542,7 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
             child: ListBody(
               children: [
                 Text(
-                    'Are you sure you want to add this item to collection list?'),
+                    'Are you sure you want to add this item to collection item?'),
               ],
             ),
           ),
@@ -444,7 +550,18 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
             TextButton(
               child: const Text('Yes'),
               onPressed: () async {
-                Navigator.of(context).pop(true);
+                await collectionController
+                    .collectionItemCreate(
+                  collectionId!,
+                  isCheckedIds.join(','),
+                  "", "", "", "", "", "", // your other params
+                )
+                    .then((status) {
+                  if (status.isSuccess) {
+                    _loadCollectionItems();
+                    Navigator.of(context).pop(true);
+                  }
+                });
               },
             ),
             TextButton(
@@ -480,8 +597,25 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () {
                 // Call your delete function here
-                _deleteItem(index);
-                Navigator.of(context).pop(); // Dismiss the dialog
+                collectionController
+                    .deleteCollectionItemController(
+                        _collectionItems[index].collectionItemId!,
+                        widget.collectionId)
+                    .then((result) {
+                  if (result.isSuccess) {
+                    setState(() {
+                      _collectionItems.removeAt(index); // ✅ Remove deleted item
+                    });
+
+                    Navigator.of(context).pop(true);
+                    //Navigator.pop(context, true);
+                  } else {
+                    alert.showAlertDialog(
+                        context, "Delete collection item", result.message);
+                  }
+                });
+                //  _deleteItem(index);
+                //   Navigator.of(context).pop(); // Dismiss the dialog
                 // Optionally show a snackbar or toast
               },
             ),
@@ -489,5 +623,37 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
         );
       },
     );
+  }
+
+  bool _isVideo(String path) {
+    final videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.3gp'];
+    return videoExtensions.any((ext) => path.toLowerCase().endsWith(ext));
+  }
+
+  Future<ImageProvider?> _getThumbnailImage(String url) async {
+    if (_isVideo(url)) {
+      try {
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final tempDir = await getTemporaryDirectory();
+          final videoFile = File(
+              '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.mp4');
+          await videoFile.writeAsBytes(response.bodyBytes);
+
+          final thumbnailData = await VideoThumbnail.thumbnailData(
+            video: videoFile.path,
+            imageFormat: ImageFormat.PNG,
+            maxWidth: 150,
+            quality: 75,
+          );
+          if (thumbnailData != null) return MemoryImage(thumbnailData);
+        }
+      } catch (e) {
+        debugPrint('Error generating video thumbnail: $e');
+      }
+      return null;
+    } else {
+      return CachedNetworkImageProvider(url);
+    }
   }
 }

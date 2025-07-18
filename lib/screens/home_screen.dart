@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pam_app/constants/colours.dart';
 import 'package:pam_app/constants/dimensions.dart';
@@ -7,6 +8,7 @@ import 'package:pam_app/screens/auth/login_screen.dart';
 import 'package:pam_app/screens/usecase_screen.dart';
 import 'package:pam_app/services/auth.dart';
 import 'package:pam_app/widgets/big_text.dart';
+import 'package:pam_app/widgets/small_text.dart';
 
 import '../constants/imgasset.dart';
 import 'addItem/add_item_images.dart';
@@ -37,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isAccountShow = false;
 
   Auth authService = Auth();
+  final storage = FlutterSecureStorage();
 
   @override
   void initState() {
@@ -78,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (shouldLogout == true) {
       await FirebaseAuth.instance.signOut();
+      await storage.deleteAll();
       Navigator.pushReplacementNamed(
           context, LoginScreen.screenId); // Navigate to login screen
     }
@@ -100,225 +104,67 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
-            onPressed: () => _confirmLogout,
+            onPressed: () => _confirmLogout(context),
             color: Colors.white,
           ),
         ],
       ),
       body: Column(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 5.0),
-                child: Column(
-                  children: [
-                    /* Align(
-                      alignment: AlignmentDirectional.topCenter,
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        height: 120,
-                        width: 300,
-                        child: Card(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Container(
-                                color: AppColors.secondaryColor,
-                                child: BigText(
-                                  text: '\$7,295.00',
-                                  color: AppColors.whiteColor,
-                                ),
-                              ),
-                              Container(
-                                color: AppColors.secondaryColor,
-                                child: BigText(
-                                  text: 'Current value',
-                                  color: AppColors.whiteColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          color: AppColors.secondaryColor,
-                          elevation: 10,
-                          shadowColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                        ),
-                      ),
-                    ),*/
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Container(
-                            height: 130,
-                            width: 80,
-                            child: Column(
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).pushNamed(
-                                        AddItemImagesScreen.screenId);
-                                  },
-                                  child: Image.asset(
-                                    imgadditem,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                        AddItemImagesScreen.screenId);
-                                  },
-                                  child: Text("Add Items"),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            height: 130,
-                            width: 80,
-                            child: Column(
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.of(context)
-                                        .pushNamed(ItemsListScreen.screenId);
-                                  },
-                                  child: Image.asset(
-                                    imgshowitem,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .pushNamed(ItemsListScreen.screenId);
-                                  },
-                                  child: Text("Find items"),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 160,
-                            width: 120,
-                            child: Column(
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).pushNamed(
-                                        ParentCollectionsListScreen.screenId);
-                                  },
-                                  child: Image.asset(
-                                    imgtodo,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pushNamed(
-                                        ParentCollectionsListScreen.screenId);
-                                  },
-                                  child: Text("My Collections"),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                    Center(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Container(
-                            height: 210,
-                            width: 80,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                InkWell(
-                                  onTap: () {},
-                                  child: Image.asset(
-                                    imgtag,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {},
-                                  child: Text("My Stories"),
-                                ),
-                                SizedBox(
-                                  height: Dimensions.height10,
-                                ),
-                                TextButton(
-                                  onPressed: () {},
-                                  style: ButtonStyle(
-                                    foregroundColor: WidgetStatePropertyAll(
-                                        AppColors.whiteColor),
-                                    backgroundColor: WidgetStatePropertyAll(
-                                        AppColors.secondaryColor),
-                                  ),
-                                  child: Text("Sell Things"),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            height: 210,
-                            width: 100,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                InkWell(
-                                  onTap: () {},
-                                  child: Image.asset(
-                                    imgcontact,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {},
-                                  child: Text("My People"),
-                                ),
-                                SizedBox(
-                                  height: Dimensions.height10,
-                                ),
-                                TextButton(
-                                  onPressed: () {},
-                                  style: ButtonStyle(
-                                    foregroundColor: WidgetStatePropertyAll(
-                                        AppColors.whiteColor),
-                                    backgroundColor: WidgetStatePropertyAll(
-                                        AppColors.secondaryColor),
-                                  ),
-                                  child: Text("Share Things"),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+          SizedBox(
+            height: Dimensions.height45,
+          ),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 10,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: SmallText(
+                  text:
+                      "Welcome to your personal dashboard. Here, you can manage your tangible assets and cherished heirlooms — ensuring their value and stories live on.",
+                  size: 16,
+                  height: 1.2,
+                  color: AppColors.greyColor,
                 ),
               ),
-            ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).pushNamed(ItemsListScreen.screenId);
+                    },
+                    child: Image.asset(
+                      imgadditem,
+                      height: 80,
+                      width: 80,
+                    ),
+                  ),
+                  Text("Manage Items"),
+                ],
+              ),
+              SizedBox(
+                height: Dimensions.height10,
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushNamed(ParentCollectionsListScreen.screenId);
+                    },
+                    child: Image.asset(
+                      imgtodo,
+                      height: 80,
+                      width: 80,
+                    ),
+                  ),
+                  Text("Manage Collections"),
+                ],
+              ),
+            ],
           ),
         ],
       ),

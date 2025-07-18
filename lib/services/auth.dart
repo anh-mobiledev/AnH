@@ -12,6 +12,7 @@ import 'package:pam_app/constants/app_contants.dart';
 import 'package:pam_app/constants/widgets.dart';
 import 'package:pam_app/screens/auth/email_verify_screen.dart';
 import 'package:pam_app/screens/auth/phone_otp_screen.dart';
+import 'package:pam_app/screens/firebase_signin.dart';
 import 'package:pam_app/screens/home_screen.dart';
 import 'package:pam_app/screens/location_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,11 +48,15 @@ class Auth {
     if (wasUserPresentInDatabase.isNotEmpty) {
       if (currentUser != null) {
         _userId = currentUser!.uid;
-        _firebaseToken = (await currentUser?.getIdToken())!;
+        _firebaseToken = (await currentUser?.getIdToken(true))!;
+        storage.write(key: 'firebase_token', value: _firebaseToken);
+        storage.write(key: 'firebase_user_id', value: _userId);
       }
 
       //sharedPreferences.setString(AppConstants.UID, user!.uid);
-      Navigator.pushReplacementNamed(context, HomeScreen.screenId);
+      // Navigator.pushReplacementNamed(context, HomeScreen.screenId);
+
+      Navigator.pushReplacementNamed(context, FirebaseSignIn.screenId);
     } else {
       await registerWithPhoneNumber(user, context);
     }
@@ -139,7 +144,10 @@ class Auth {
       Navigator.of(context, rootNavigator: true).pop();
       if (userCredential != null) {
         _userId = userCredential.user!.uid;
-        _firebaseToken = (await userCredential.user?.getIdToken())!;
+        _firebaseToken = (await userCredential.user?.getIdToken(true))!;
+
+        storage.write(key: 'firebase_token', value: _firebaseToken);
+        storage.write(key: 'firebase_user_id', value: _userId);
 
         getAdminCredentialPhoneNumber(context, userCredential.user);
       } else {
@@ -277,11 +285,15 @@ class Auth {
       Navigator.pop(context);
       if (credential.user!.uid != null) {
         _userId = credential.user!.uid;
-        _firebaseToken = (await credential.user?.getIdToken())!;
+        _firebaseToken = (await credential.user?.getIdToken(true))!;
+
+        storage.write(key: 'firebase_token', value: _firebaseToken);
+        storage.write(key: 'firebase_user_id', value: _userId);
 
         sharedPreferences.setString(AppConstants.UID, credential.user!.uid);
 
-        Navigator.pushReplacementNamed(context, HomeScreen.screenId);
+        // Navigator.pushReplacementNamed(context, HomeScreen.screenId);
+        Navigator.pushReplacementNamed(context, FirebaseSignIn.screenId);
       } else {
         customSnackBar(
             context: context, content: 'Please check with your credentials');
@@ -324,6 +336,8 @@ class Auth {
         await credential.user!.sendEmailVerification().then((value) {
           _userId = credential.user!.uid;
           _firebaseToken = credential.user!.getIdToken.toString();
+          storage.write(key: 'firebase_token', value: _firebaseToken);
+          storage.write(key: 'firebase_user_id', value: _userId);
 
           print(
               'user id, firebase auth_token :: ${_userId}  ${_firebaseToken}');

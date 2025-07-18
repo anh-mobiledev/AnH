@@ -227,6 +227,83 @@ class MyCollectionsController extends GetxController {
     return responseModel;
   }
 
+  Future<ResponseModel> deleteCollectionController(String collectionId) async {
+    //App token
+    final appToken = await storage.read(key: 'app_token');
+    String? token;
+
+    //Firebase token
+    if (appToken == null) {
+      token = await Auth.getIdToken();
+    } else {
+      token = appToken;
+    }
+
+    String responseString =
+        await myCollectionsRepo.deleteCollectionRepo(collectionId, token!);
+
+    Map<String, dynamic> jsonObject = jsonDecode(responseString);
+
+    late ResponseModel responseModel;
+
+    if (jsonObject['success'] == true) {
+      await storage.write(key: 'app_token', value: jsonObject['auth_token']);
+
+      responseModel =
+          ResponseModel(true, jsonObject['auth_token'], jsonObject['message']);
+
+      _isLoaded = true;
+
+      update();
+    } else {
+      await storage.write(key: 'app_token', value: jsonObject['auth_token']);
+      responseModel = ResponseModel(false, "", jsonObject['message']);
+
+      _isLoaded = false;
+    }
+
+    return responseModel;
+  }
+
+  Future<ResponseModel> deleteCollectionItemController(
+      int collectionItemId, String collectionId) async {
+    //App token
+    final appToken = await storage.read(key: 'app_token');
+    String? token;
+
+    //Firebase token
+    if (appToken == null) {
+      token = await Auth.getIdToken();
+    } else {
+      token = appToken;
+    }
+
+    String responseString = await myCollectionsRepo.deleteCollectionItemRepo(
+        collectionItemId, collectionId, token!);
+
+    Map<String, dynamic> jsonObject = jsonDecode(responseString);
+
+    late ResponseModel responseModel;
+
+    if (jsonObject['success'] == true) {
+      await storage.write(key: 'app_token', value: jsonObject['auth_token']);
+
+      responseModel =
+          ResponseModel(true, jsonObject['auth_token'], jsonObject['message']);
+
+      _isLoaded = true;
+
+      update();
+    } else {
+      await storage.write(key: 'app_token', value: jsonObject['auth_token']);
+      responseModel = ResponseModel(false, "", jsonObject['message']);
+
+      _isLoaded = false;
+    }
+
+    return responseModel;
+  }
+
   /* Future<void> getmyItemsList(String token) async {
     try {
       Response response = await myCollectionsRepo.getmyItemsList(token);

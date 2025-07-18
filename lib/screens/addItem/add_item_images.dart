@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:pam_app/forms/add_item_images_form.dart';
+import 'package:pam_app/forms/media_picker_form.dart';
 
 import '../../constants/colours.dart';
 import '../auth/login_screen.dart';
@@ -57,9 +58,9 @@ class _AddItemImagesScreenState extends State<AddItemImagesScreen> {
           style: TextStyle(color: AppColors.whiteColor),
         ),
         leading: IconButton(
-          icon: Icon(Icons.home, color: Colors.white),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.of(context).pushNamed(HomeScreen.screenId);
+            Navigator.pop(context);
           },
         ),
       ),
@@ -73,7 +74,8 @@ class _AddItemImagesScreenState extends State<AddItemImagesScreen> {
       SizedBox(
         height: 50,
       ),
-      AddItemImagesForm()
+      MediaPickerForm()
+      //AddItemImagesForm()
     ]));
   }
 }

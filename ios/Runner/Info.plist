@@ -70,6 +70,8 @@
 	<string>This app needs to access your microphone when in the background</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs to access your photo library when in the background</string>
-	
+	<key>NSFaceIDUsageDescription</key>
+	<string>This app uses Face ID to authenticate the user</string>
+
 </dict>
 </plist>

@@ -123,6 +123,7 @@ dependencies:
   sign_in_button: ^4.0.1
   font_awesome_flutter: ^10.8.0
   share_plus: ^4.5.3
+  flutter_uploader: ^3.0.0-beta.4
   
  # csc_picker: ^0.2.7
 # google_ml_kit: ^0.19.0

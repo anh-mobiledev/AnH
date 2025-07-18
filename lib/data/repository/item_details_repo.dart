@@ -88,6 +88,12 @@ class AddItemRepo extends GetxService {
     );
   }
 
+  Future<String> deleteMyItemRepo(String myItemId, String token) async {
+    return await apiClient.deleteWithBody(
+        AppConstants.BASE_URL + AppConstants.DEL_ITEM_URI + '${myItemId}',
+        {'result_as': 'JSON', 'auth_token': token});
+  }
+
   //--------------------------SQLLite UPDATE item name--------------------------------------
   Future<bool> insertItem_Image_Name_SQLLiteDB(
       String imagePath, String imageName) async {

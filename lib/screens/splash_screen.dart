@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pam_app/constants/colours.dart';
@@ -28,6 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
   late final InternetConnectionCheckerPlus _connectionChecker;
 
   int _activeDot = 0;
+  final storage = FlutterSecureStorage();
 
   @override
   void initState() {
@@ -35,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
     _checkConnection();
     _startMonitoring();
 
-    permissionBasedNavigationFunc();
+    permissionBasedNavigationFunc(context);
 
     super.initState();
 
@@ -59,8 +61,8 @@ class _SplashScreenState extends State<SplashScreen> {
     });*/
   }
 
-  permissionBasedNavigationFunc() {
-    print('splash screen');
+  /* permissionBasedNavigationFunc() {
+  
     Timer(const Duration(seconds: 4), () async {
       FirebaseAuth.instance.authStateChanges().listen((User? user) async {
         if (user == null) {
@@ -69,6 +71,28 @@ class _SplashScreenState extends State<SplashScreen> {
           Navigator.pushReplacementNamed(context, HomeScreen.screenId);
         }
       });
+    });
+  }*/
+
+  void permissionBasedNavigationFunc(BuildContext context) {
+    Timer(const Duration(seconds: 4), () async {
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+
+      if (firebaseUser != null) {
+        // Logged in with Firebase
+        Navigator.pushReplacementNamed(context, HomeScreen.screenId);
+      } else {
+        // Check for native login token
+        final token = await storage.read(key: 'app_token');
+
+        if (token != null && token.isNotEmpty) {
+          // Logged in with native
+          Navigator.pushReplacementNamed(context, HomeScreen.screenId);
+        } else {
+          // Not logged in
+          Navigator.pushReplacementNamed(context, WelcomeScreen.screenId);
+        }
+      }
     });
   }
 

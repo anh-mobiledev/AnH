@@ -92,6 +92,7 @@ class _AddItemImagesFormState extends State<AddItemImagesForm> {
 
   refreshImages(int item_code) {
     dbHelper.getPhotos(item_code).then((imgs) {
+      
       setState(() {
         images.clear();
         images.addAll(imgs);
@@ -523,7 +524,7 @@ class _AddItemImagesFormState extends State<AddItemImagesForm> {
                   : null,
             ),
           ),
-          SizedBox(height: Dimensions.height30),
+          SizedBox(height: Dimensions.height10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: roundedButton(

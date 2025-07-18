@@ -26,8 +26,8 @@ class SignInWithEmailPasswordScreen extends StatelessWidget {
         ),
         title: Text(
           args['action'] == 'signin'
-              ? 'Signin with email and password'
-              : 'Signup with email and password',
+              ? 'Sign in with email and password'
+              : 'Sign up with email and password',
           style: TextStyle(color: AppColors.whiteColor),
         ),
       ),

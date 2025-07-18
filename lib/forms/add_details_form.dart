@@ -93,7 +93,29 @@ class _AddDetailsFormState extends State<AddDetailsForm> {
     'Select value units',
     'USD',
     'EUR',
-    'JPY'
+    'GBP',
+    'INR',
+    'JPY',
+    'CNY',
+    'AUD',
+    'CAD',
+    'CHF',
+    'NZD',
+    'SEK',
+    'NOK',
+    'RUB',
+    'BRL',
+    'ZAR',
+    'MXN',
+    'SGD',
+    'HKD',
+    'KRW',
+    'AED',
+    'SAR',
+    'TRY',
+    'IDR',
+    'MYR',
+    'THB'
   ];
 
   final List<String> _additionalOptions = [
@@ -566,7 +588,24 @@ class _AddDetailsFormState extends State<AddDetailsForm> {
               text: 'Save and return to home',
               textColor: AppColors.whiteColor,
               onPressed: () async {
-                Navigator.of(context).pushNamed(HomeScreen.screenId);
+                alert.showLoaderDialog(context);
+                itemController
+                    .updateMyItem(
+                        itemController.myItemId,
+                        args['itemName'],
+                        args['itemDesc'],
+                        selectedValueType,
+                        _valueController.text,
+                        selectedValueUnits,
+                        selectedStatus,
+                        selectedCondtion,
+                        _keyWordsController.text.trim())
+                    .then((result) {
+                  if (result.isSuccess) {
+                    Navigator.pop(context);
+                    Navigator.of(context).pushNamed(HomeScreen.screenId);
+                  }
+                });
               }),
         )
       ],

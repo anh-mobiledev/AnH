@@ -80,6 +80,33 @@ class ApiClient extends GetConnect implements GetxService {
     }
   }
 
+  Future<Response> deleteData(String uri, dynamic body) async {
+    print('delete url ${uri} \n delete body string ${body.toString()}');
+    try {
+      Response response = await delete(uri, query: body, headers: _mainHeaders);
+      return response;
+    } catch (e) {
+      print(e.toString());
+      return Response(statusCode: 1, statusText: e.toString());
+    }
+  }
+
+  Future<String> deleteWithBody(String uri, dynamic body) async {
+    final response = await http.Request(
+      'DELETE',
+      Uri.parse(uri),
+    )
+      ..headers.addAll({'Content-Type': 'application/json'})
+      ..body = jsonEncode(body);
+
+    final streamed = await response.send();
+    final responseBody = await streamed.stream.bytesToString();
+
+    print('Response: ${streamed.statusCode}, $responseBody');
+
+    return responseBody;
+  }
+
   Future<dynamic> addMyItemPrimaryImage(
     String uri,
     String auth_token,

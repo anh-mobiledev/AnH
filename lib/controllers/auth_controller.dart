@@ -33,7 +33,6 @@ class AuthController extends GetxController implements GetxService {
 
   Future<ResponseModel> login(
       String username, String password, String deviceId) async {
-    _isLoading = true;
     Response response = await authRepo.login(username, password);
     late ResponseModel responseModel;
 
@@ -70,11 +69,36 @@ class AuthController extends GetxController implements GetxService {
         responseModel = ResponseModel(false, "", response.body["message"]);
         print(response.body["message"]);
       }
+      _isLoading = true;
+      update();
     } else {
       responseModel = ResponseModel(false, response.statusText!, "");
+      _isLoading = false;
     }
-    _isLoading = false;
-    update();
+
+    return responseModel;
+  }
+
+  Future<ResponseModel> verifyFirebaseIdTokenController(
+      String firebaseIdToken, String firebaseUid) async {
+    Response response =
+        await authRepo.verifyFirebaseIdTokenRepo(firebaseIdToken, firebaseUid);
+
+    late ResponseModel responseModel;
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      await storage.write(key: 'app_token', value: response.body['auth_token']);
+      await storage.write(key: 'userId', value: response.body['user_id']);
+
+      responseModel = ResponseModel(
+          true, response.body['auth_token'], response.body['message']);
+      _isLoading = true;
+      update();
+    } else {
+      responseModel = ResponseModel(
+          false, response.body['auth_token'], response.body['message']);
+      _isLoading = false;
+    }
     return responseModel;
   }
 

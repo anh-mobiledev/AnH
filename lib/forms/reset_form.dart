@@ -84,14 +84,6 @@ class _ResetFormState extends State<ResetForm> {
                         FirebaseAuth.instance
                             .sendPasswordResetEmail(
                           email: _emailController.text,
-                          actionCodeSettings: ActionCodeSettings(
-                              url:
-                                  'https://personalassetmanager-5aa18.firebaseapp.com/reset',
-                              handleCodeInApp: true,
-                              androidPackageName: 'com.example.pam_app',
-                              androidInstallApp: true,
-                              androidMinimumVersion: '21',
-                              iOSBundleId: 'com.example.pamApp'),
                         )
                             .then((value) {
                           customSnackBar(

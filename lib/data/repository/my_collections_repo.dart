@@ -75,6 +75,27 @@ class MyCollectionsRepo extends GetxService {
         AppConstants.COLLECTION_ITEM_CREATE_URI, body);
   }
 
+  Future<String> deleteCollectionRepo(String collectionId, String token) async {
+    return await apiClient.deleteWithBody(
+        AppConstants.BASE_URL +
+            AppConstants.COLLECTION_DEL_URI +
+            '${collectionId}',
+        {'result_as': 'JSON', 'auth_token': token});
+  }
+
+  Future<String> deleteCollectionItemRepo(
+      int collectionItemId, String collectionId, String token) async {
+    return await apiClient.deleteWithBody(
+        AppConstants.BASE_URL +
+            AppConstants.COLLECTION_ITEM_DEL_URI +
+            '${collectionItemId}',
+        {
+          'result_as': 'JSON',
+          'auth_token': token,
+          'collection_id': collectionId
+        });
+  }
+
   //GET /myitems list
   /* Future<Response> getmyItemsList(String token) async {
     return await apiClient.getData('${AppConstants.MYITEMS_LIST_URI}'
