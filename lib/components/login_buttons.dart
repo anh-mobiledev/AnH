@@ -46,6 +46,7 @@ class _LoginInButtonsState extends State<LoginInButtons> {
   SupportState supportState = SupportState.unknown;
   List<BiometricType>? availableBiometrics;
   Dialogs alert = Dialogs();
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
   Future<void> checkBiometric() async {
     late bool canCheckbiometric;
@@ -76,25 +77,41 @@ class _LoginInButtonsState extends State<LoginInButtons> {
     });
   }
 
-  Future<void> authenticateWithBiometrics() async {
+  Future<void> authenticateUser() async {
     try {
-      final authenticated = await auth.authenticate(
-          localizedReason: 'Authenticate with Fingerprint or Face ID',
-          options: AuthenticationOptions(
-            stickyAuth: true,
-            biometricOnly: true,
-          ));
+      bool canCheckBiometrics = await auth.canCheckBiometrics;
+      bool isDeviceSupported = await auth.isDeviceSupported();
 
-      if (!mounted) {
+      if (!canCheckBiometrics || !isDeviceSupported) {
+        print("Biometric not supported on this device.");
         return;
       }
 
-      if (authenticated) {
-        Navigator.pushNamed(context, HomeScreen.screenId);
+      bool didAuthenticate = await auth.authenticate(
+        localizedReason: 'Please authenticate to proceed',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+          useErrorDialogs: true,
+        ),
+      );
+
+      if (didAuthenticate) {
+        // Authentication successful
+        String? token = await secureStorage.read(key: 'app_token');
+
+        if (token == null) {
+          // Token not stored yet, you may login once with username/password to get token
+          alert.showAlertDialog(context, "Authentication!",
+              "Token not found. Please login manually first.");
+
+          return;
+        }
+      } else {
+        print("Authentication failed.");
       }
-    } on PlatformException catch (e) {
-      print(e);
-      return;
+    } catch (e) {
+      print("Error during authentication: $e");
     }
   }
 
@@ -105,12 +122,10 @@ class _LoginInButtonsState extends State<LoginInButtons> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /*Padding(
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: OutlinedButton.icon(
-              onPressed: () async {
-                authenticateWithBiometrics();
-              },
+              onPressed: authenticateUser,
               style: OutlinedButton.styleFrom(
                 minimumSize: Size(260, 60),
                 backgroundColor: Colors.white,
@@ -118,13 +133,13 @@ class _LoginInButtonsState extends State<LoginInButtons> {
               ),
               icon: FaIcon(FontAwesomeIcons.fingerprint,
                   color: Color(0xFF1877F2)),
-              label: Text('Sign in with Biomatric',
+              label: Text('Sign in Face ID / Biomatrics',
                   style: TextStyle(color: Colors.black87)),
             ),
           ),
           const SizedBox(
             height: 15,
-          ),*/
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: OutlinedButton.icon(
@@ -216,8 +231,6 @@ class _LoginInButtonsState extends State<LoginInButtons> {
 
                 User? user = await Auth.signInWithGoogle(context: context);
 
-                String? firebaseToken = await user?.getIdToken();
-                print('firebaseToken:: ${firebaseToken}');
 
                 if (user != null) {
                   authService.getAdminCredentialPhoneNumber(context, user);
