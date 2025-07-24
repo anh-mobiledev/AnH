@@ -54,7 +54,7 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
 
   final _keyWordsController = TextEditingController();
   final _valueController = TextEditingController();
-  final _valueUnitsController = TextEditingController();
+  //final _valueUnitsController = TextEditingController();
 
   bool uploading = false;
   double val = 0;
@@ -197,7 +197,8 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
     _itemNameController.text = widget.itemInfo.name!;
     _itemDescController.text = widget.itemInfo.description!;
     _valueController.text = widget.itemInfo.valueAmount!.toString();
-    _valueUnitsController.text = widget.itemInfo.valueUnits!;
+    // _valueUnitsController.text = widget.itemInfo.valueUnits!;
+    selectedValueUnits = widget.itemInfo.valueUnits!;
     selectedValueType = widget.itemInfo.valueType!;
     selectedCondtion = widget.itemInfo.condition!;
     selectedStatus = widget.itemInfo.status!;
@@ -257,7 +258,8 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
       _itemNameController.text = myItemByIdServerModel!.name!;
       _itemDescController.text = myItemByIdServerModel!.description!;
       _valueController.text = myItemByIdServerModel!.valueAmount!.toString();
-      _valueUnitsController.text = myItemByIdServerModel!.valueUnits!;
+      // _valueUnitsController.text = myItemByIdServerModel!.valueUnits!;
+      selectedValueUnits = myItemByIdServerModel!.valueUnits!;
       selectedValueType = myItemByIdServerModel!.valueType!;
       selectedCondtion = myItemByIdServerModel!.condition!;
       selectedStatus = myItemByIdServerModel!.status!;
@@ -311,7 +313,7 @@ class _ItemDetailsViewFormState extends State<ItemDetailsViewForm> {
     _itemDescController.dispose();
     _keyWordsController.dispose();
     _valueController.dispose();
-    _valueUnitsController.dispose();
+    // _valueUnitsController.dispose();
     pageController.dispose();
     super.dispose();
   }

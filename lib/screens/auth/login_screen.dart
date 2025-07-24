@@ -23,11 +23,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   _body() {
     return SingleChildScrollView(
-      child:
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         LargeHeadingWidget(
-            heading: 'Welcome', subHeading: 'Sign in to Continue'),
-        LogInForm(),
+          heading: 'Welcome',
+          headingTextColor: AppColors.secondaryColor,
+          subHeading: 'Sign in to Continue',
+          subheadingTextColor: AppColors.secondaryColor,
+        ),
+        const LogInForm(),
       ]),
     );
   }

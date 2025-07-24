@@ -15,6 +15,9 @@ class AppConstants {
   static const String LOGIN_URI = "/siteusers/sign_in";
   static const String LOGOUT_URI = "/siteusers/sign_out";
 
+//Firebase sign in
+static const String FIREBASE_SIGNIN_URI = "/siteusers/sign_in";
+
 //New Account
   static const String NEW_ACCOUNT_URI = "/welcome/new_account";
 

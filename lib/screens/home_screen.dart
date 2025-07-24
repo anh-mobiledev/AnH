@@ -49,9 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> userToken() async {
-    String? token = await Auth.getIdToken();
-    String? userId = Auth.getUid();
-    print('firebase token :: ${token} \n user id ${userId}');
+    String? token = await storage.read(key: 'app_token');
+    String? userId = await storage.read(key: 'userId');
+    print('app token :: ${token} \n user id ${userId}');
   }
 
   @override

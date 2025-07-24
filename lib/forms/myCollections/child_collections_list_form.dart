@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:pam_app/components/large_heading_widget.dart';
 import 'package:pam_app/constants/colours.dart';
 import 'package:pam_app/constants/dimensions.dart';
 import 'package:pam_app/controllers/item_controller.dart';
@@ -105,233 +106,329 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
 
     // Get.find<MyCollectionsController>().getChildCollectionList(parent_id!);
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Container(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: AppColors.secondaryColor,
-                      side: BorderSide(
-                        color: AppColors.secondaryColor,
-                      ),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                          side: BorderSide(color: AppColors.secondaryColor)),
-                    ),
-                    onPressed: () async {
-                      alert.showLoaderDialog(context);
-                      createDialog();
-                    },
-                    child: Icon(
-                      Icons.add,
-                      color: Colors.white,
-                    )),
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            color: Colors.white,
+            child: Text(
+              'Collections Items',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryColor,
               ),
             ),
           ),
-          Container(
-            margin: EdgeInsets.only(left: Dimensions.width15),
-            width: Dimensions.screenWidth,
-            child: Text(
-              "Swipe from RIGHT to LEFT, to see more options!",
-              style: TextStyle(
-                  fontSize: Dimensions.font26 / 2,
-                  color: AppColors.secondaryColor),
-            ),
-          ),
-          Container(
-            height: 700,
-            child: GetBuilder<MyCollectionsController>(
-              builder: (myCollectionController) {
-                return myCollectionController.isLoaded
-                    ? SingleChildScrollView(
-                        child: Container(
-                          constraints: BoxConstraints(
-                              minHeight: 100, minWidth: 100, maxHeight: 600),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius:
-                                BorderRadius.circular(Dimensions.radius30),
-                            boxShadow: [
-                              BoxShadow(
-                                blurRadius: 10,
-                                spreadRadius: 7,
-                                offset: Offset(1, 1),
-                                color: Colors.grey.withOpacity(0.2),
-                              )
-                            ],
-                          ),
-                          margin: EdgeInsets.only(
-                              left: Dimensions.width10,
-                              right: Dimensions.width10,
-                              top: Dimensions.height20),
-                          child: ListView.builder(
-                            itemCount: _collectionItems.length,
-                            shrinkWrap: true,
-                            itemBuilder: (BuildContext context, int index) {
-                              final child_collections = _collectionItems[index];
-
-                              return Slidable(
-                                key: ValueKey(child_collections),
-                                endActionPane: ActionPane(
-                                  motion: ScrollMotion(),
-                                  dismissible: DismissiblePane(
-                                      onDismissed: () =>
-                                          _showDeleteConfirmDialog(
-                                              context, index)),
-                                  children: [
-                                    SlidableAction(
-                                      onPressed: (context) => _shareItem(
-                                          name: child_collections.name!,
-                                          description:
-                                              child_collections.description! ??
-                                                  'NA',
-                                          price: child_collections.valueAmount!,
-                                          imageUrl: child_collections
-                                              .primary_img_url!),
-                                      backgroundColor: Colors.blue,
-                                      foregroundColor: Colors.white,
-                                      icon: Icons.share,
-                                      label: 'Share',
-                                    ),
-                                    SlidableAction(
-                                      onPressed: (context) =>
-                                          _showDeleteConfirmDialog(
-                                              context, index),
-                                      backgroundColor: Colors.red,
-                                      foregroundColor: Colors.white,
-                                      icon: Icons.delete,
-                                      label: 'Delete',
-                                    ),
-                                  ],
-                                ),
-                                child: Card(
-                                  child: InkWell(
-                                    onTap: () {
-                                      MyItemsServerModel arguments =
-                                          MyItemsServerModel(
-                                        id: _collectionItems[index].myItemId,
-                                        name: _collectionItems[index].name,
-                                        description:
-                                            _collectionItems[index].description,
-                                        valueAmount:
-                                            _collectionItems[index].valueAmount,
-                                        primary_img_url: _collectionItems[index]
-                                            .primary_img_url,
-                                        valueType:
-                                            _collectionItems[index].valueType,
-                                        valueUnits:
-                                            _collectionItems[index].valueUnits,
-                                        status: _collectionItems[index].status,
-                                        condition:
-                                            _collectionItems[index].condition,
-                                        keywords:
-                                            _collectionItems[index].keywords,
-                                      );
-
-                                      Navigator.of(context).pushNamed(
-                                          ItemDetailsViewScreen.screenId,
-                                          arguments: arguments);
-                                    },
-                                    child: ListTile(
-                                      leading: FutureBuilder<ImageProvider?>(
-                                        future: _getThumbnailImage(
-                                            _collectionItems[index]
-                                                .primary_img_url!),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState ==
-                                              ConnectionState.waiting) {
-                                            return const SizedBox(
-                                              height: 60,
-                                              width: 60,
-                                              child: Center(
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                          strokeWidth: 2)),
-                                            );
-                                          }
-
-                                          if (snapshot.hasData &&
-                                              snapshot.data != null) {
-                                            return Stack(
-                                              alignment: Alignment.center,
-                                              children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: Image(
-                                                    image: snapshot.data!,
-                                                    height: 60,
-                                                    width: 60,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                ),
-                                                if (_isVideo(
-                                                    _collectionItems[index]
-                                                        .primary_img_url!))
-                                                  GestureDetector(
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (_) =>
-                                                              VideoPlayerScreen(
-                                                                  videoUrl: (_collectionItems[
-                                                                          index]
-                                                                      .primary_img_url!)),
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: const Icon(
-                                                        Icons.play_circle_fill,
-                                                        color: Colors.white70,
-                                                        size: 24),
-                                                  ),
-                                              ],
-                                            );
-                                          } else {
-                                            return const Icon(
-                                                Icons.broken_image,
-                                                size: 60);
-                                          }
-                                        },
-                                      ),
-                                      title:
-                                          Text(_collectionItems[index].name!),
-                                      subtitle: Text(_collectionItems[index]
-                                          .valueAmount!
-                                          .toString()),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      )
-                    : const Padding(
-                        padding: EdgeInsets.only(top: 200),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 40,
+              ),
+              Expanded(
+                child: GetBuilder<MyCollectionsController>(
+                  builder: (myCollectionController) {
+                    if (!myCollectionController.isLoaded) {
+                      return const SizedBox(
+                        height: 200,
                         child: Center(
                           child: Text(
-                            "No records found, please click + to add.",
+                            'No records found',
                             style: TextStyle(fontSize: 15),
                           ),
                         ),
                       );
+                    }
+
+                    return SizedBox(
+                      width: Dimensions.screenWidth,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Table(
+                            border:
+                                TableBorder.all(width: 0.5, color: Colors.grey),
+                            columnWidths: const {
+                              0: FixedColumnWidth(60), // Image
+                              1: FlexColumnWidth(), // Name
+                              2: FixedColumnWidth(65), // Value
+                              3: FixedColumnWidth(40), // Share
+                              4: FixedColumnWidth(40), // Del
+                            },
+                            children: [
+                              TableRow(
+                                decoration:
+                                    BoxDecoration(color: Colors.grey[200]),
+                                children: [
+                                  // Preview header (not clickable)
+                                  const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Text('Preview',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+
+                                  // Name header clickable
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Row(
+                                        children: [
+                                          const Text('Name',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Value header clickable
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Row(
+                                        children: [
+                                          const Text('Value',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Text('-',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+
+                                  const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Text('-',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 500,
+                            child: SingleChildScrollView(
+                              child: Table(
+                                border: TableBorder.all(
+                                    width: 0.5, color: Colors.grey),
+                                columnWidths: const {
+                                  0: FixedColumnWidth(60), // Image
+                                  1: FlexColumnWidth(), // Name
+                                  2: FixedColumnWidth(65), // Value
+                                  3: FixedColumnWidth(40), // Share
+                                  4: FixedColumnWidth(40) // Delete
+                                },
+                                children: [
+                                  // Data rows
+                                  ..._collectionItems
+                                      .asMap()
+                                      .entries
+                                      .map((entry) {
+                                    int index = entry.key;
+                                    final item = entry.value;
+
+                                    return TableRow(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(4.0),
+                                          child: FutureBuilder<ImageProvider?>(
+                                            future: _getThumbnailImage(
+                                                item.primary_img_url!),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return const SizedBox(
+                                                  height: 60,
+                                                  width: 60,
+                                                  child: Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                            strokeWidth: 2),
+                                                  ),
+                                                );
+                                              }
+
+                                              if (snapshot.hasData &&
+                                                  snapshot.data != null) {
+                                                return Stack(
+                                                  alignment: Alignment.center,
+                                                  children: [
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: Image(
+                                                        image: snapshot.data!,
+                                                        height: 60,
+                                                        width: 60,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    ),
+                                                    if (_isVideo(
+                                                        item.primary_img_url!))
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                              builder: (_) =>
+                                                                  VideoPlayerScreen(
+                                                                videoUrl: item
+                                                                    .primary_img_url!,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: const Icon(
+                                                            Icons
+                                                                .play_circle_fill,
+                                                            color:
+                                                                Colors.white70,
+                                                            size: 24),
+                                                      ),
+                                                  ],
+                                                );
+                                              } else {
+                                                return const Icon(
+                                                    Icons.broken_image,
+                                                    size: 60);
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            MyItemsServerModel arguments =
+                                                MyItemsServerModel(
+                                              id: _collectionItems[index]
+                                                  .myItemId,
+                                              name:
+                                                  _collectionItems[index].name,
+                                              description:
+                                                  _collectionItems[index]
+                                                      .description,
+                                              valueAmount:
+                                                  _collectionItems[index]
+                                                      .valueAmount,
+                                              primary_img_url:
+                                                  _collectionItems[index]
+                                                      .primary_img_url,
+                                              valueType: _collectionItems[index]
+                                                  .valueType,
+                                              valueUnits:
+                                                  _collectionItems[index]
+                                                      .valueUnits,
+                                              status: _collectionItems[index]
+                                                  .status,
+                                              condition: _collectionItems[index]
+                                                  .condition,
+                                              keywords: _collectionItems[index]
+                                                  .keywords,
+                                            );
+
+                                            Navigator.of(context).pushNamed(
+                                                ItemDetailsViewScreen.screenId,
+                                                arguments: arguments);
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              item.name ?? '',
+                                              style: TextStyle(
+                                                color: Colors
+                                                    .blue, // Optional: show it's clickable
+                                                decoration:
+                                                    TextDecoration.underline,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(item.valueAmount ?? ''),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.share,
+                                              color: Colors.blue),
+                                          onPressed: () {
+                                            _shareItem(
+                                              name: item.name!,
+                                              description:
+                                                  item.description ?? 'NA',
+                                              price: item.valueAmount!,
+                                              imageUrl: item.primary_img_url!,
+                                            );
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete,
+                                              color: Colors.red),
+                                          onPressed: () {
+                                            _showDeleteConfirmDialog(
+                                                context, index);
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              )
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: SizedBox(
+            height: 50,
+            width: 50,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.secondaryColor,
+                side: BorderSide(
+                  color: AppColors.secondaryColor,
+                ),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    side: BorderSide(color: AppColors.secondaryColor)),
+              ),
+              onPressed: () async {
+                alert.showLoaderDialog(context);
+                createDialog();
               },
+              child: Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
             ),
-          )
-        ],
-      ),
+          ),
+        )
+      ],
     );
   }
 
@@ -409,12 +506,12 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
                   }
 
                   return SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
+                    width: MediaQuery.of(context).size.width * 1.2,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(5.0),
+                          padding: const EdgeInsets.all(3.0),
                           child: TextField(
                             decoration: InputDecoration(
                               labelText: "Search by name",
@@ -426,98 +523,190 @@ class _ChildCollectionsListFormState extends State<ChildCollectionsListForm> {
                             }),
                           ),
                         ),
-                        Flexible(
-                          child: ListView.builder(
-                            itemCount: _filteredItems?.length ?? 0,
-                            itemBuilder: (context, index) {
-                              final item = _filteredItems[index];
-                              return Card(
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).pushNamed(
-                                      ItemDetailsViewScreen.screenId,
-                                      arguments: item,
-                                    );
-                                  },
-                                  child: ListTile(
-                                    leading: FutureBuilder<ImageProvider?>(
-                                      future: _getThumbnailImage(
-                                          item.primary_img_url!),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return const SizedBox(
-                                            height: 60,
-                                            width: 60,
-                                            child: Center(
-                                                child:
-                                                    CircularProgressIndicator(
-                                                        strokeWidth: 2)),
-                                          );
-                                        }
 
-                                        if (snapshot.hasData &&
-                                            snapshot.data != null) {
-                                          return Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                child: Image(
-                                                  image: snapshot.data!,
-                                                  height: 60,
-                                                  width: 60,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                              if (_isVideo(
-                                                  item.primary_img_url!))
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) =>
-                                                            VideoPlayerScreen(
-                                                                videoUrl: (item
-                                                                    .primary_img_url!)),
-                                                      ),
-                                                    );
-                                                  },
-                                                  child: const Icon(
-                                                      Icons.play_circle_fill,
-                                                      color: Colors.white70,
-                                                      size: 24),
-                                                ),
-                                            ],
-                                          );
-                                        } else {
-                                          return const Icon(Icons.broken_image,
-                                              size: 60);
-                                        }
-                                      },
-                                    ),
-                                    trailing: Checkbox(
-                                      value: isCheckedIds.contains(item.id),
-                                      onChanged: (value) {
-                                        dialogSetState(() {
-                                          if (value!) {
-                                            isCheckedIds.add(item.id!);
-                                          } else {
-                                            isCheckedIds.remove(item.id);
-                                          }
-                                        });
-                                      },
-                                    ),
-                                    title: Text(item.name ?? ''),
-                                    subtitle: Text(item.valueAmount ?? ''),
-                                  ),
+                        // Fixed Table header
+                        Table(
+                          border:
+                              TableBorder.all(width: 0.5, color: Colors.grey),
+                          columnWidths: const {
+                            0: FixedColumnWidth(80), // Image
+                            1: FlexColumnWidth(), // Name
+                            2: FlexColumnWidth(), // Value/Units
+                            3: FixedColumnWidth(50), // Checkbox
+                          },
+                          children: [
+                            TableRow(
+                              decoration:
+                                  BoxDecoration(color: Colors.grey[200]),
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Text('Preview',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
                                 ),
-                              );
-                            },
-                          ),
+                                Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Text('Name',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Text('Value',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Text('Select',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
+
+                        Expanded(
+                            child: SingleChildScrollView(
+                                child: Table(
+                                    border: TableBorder.all(
+                                        width: 0.5, color: Colors.grey),
+                                    columnWidths: const {
+                                      0: FixedColumnWidth(80),
+                                      1: FlexColumnWidth(),
+                                      2: FlexColumnWidth(),
+                                      3: FixedColumnWidth(50),
+                                    },
+                                    children: _filteredItems.map((item) {
+                                      return TableRow(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(4.0),
+                                            child:
+                                                FutureBuilder<ImageProvider?>(
+                                              future: _getThumbnailImage(
+                                                  item.primary_img_url!),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return const SizedBox(
+                                                    height: 60,
+                                                    width: 60,
+                                                    child: Center(
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                                strokeWidth:
+                                                                    2)),
+                                                  );
+                                                }
+
+                                                if (snapshot.hasData &&
+                                                    snapshot.data != null) {
+                                                  return Stack(
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          Navigator.of(context)
+                                                              .pushNamed(
+                                                            ItemDetailsViewScreen
+                                                                .screenId,
+                                                            arguments: item,
+                                                          );
+                                                        },
+                                                        child: ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(6),
+                                                          child: Image(
+                                                            image:
+                                                                snapshot.data!,
+                                                            height: 60,
+                                                            width: 60,
+                                                            fit: BoxFit.cover,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      if (_isVideo(item
+                                                          .primary_img_url!))
+                                                        GestureDetector(
+                                                          onTap: () {
+                                                            Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                builder: (_) =>
+                                                                    VideoPlayerScreen(
+                                                                        videoUrl:
+                                                                            item.primary_img_url!),
+                                                              ),
+                                                            );
+                                                          },
+                                                          child: const Icon(
+                                                              Icons
+                                                                  .play_circle_fill,
+                                                              color: Colors
+                                                                  .white70,
+                                                              size: 24),
+                                                        ),
+                                                    ],
+                                                  );
+                                                } else {
+                                                  return const Icon(
+                                                      Icons.broken_image,
+                                                      size: 60);
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.of(context).pushNamed(
+                                                ItemDetailsViewScreen.screenId,
+                                                arguments: item,
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(item.name ?? ''),
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.of(context).pushNamed(
+                                                ItemDetailsViewScreen.screenId,
+                                                arguments: item,
+                                              );
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Text(
+                                                  '${item.valueAmount ?? ''} (${item.valueUnits})'),
+                                            ),
+                                          ),
+                                          StatefulBuilder(builder:
+                                              (context, dialogSetState) {
+                                            return Checkbox(
+                                              value: isCheckedIds
+                                                  .contains(item.id),
+                                              onChanged: (value) {
+                                                dialogSetState(() {
+                                                  if (value!) {
+                                                    isCheckedIds.add(item.id!);
+                                                  } else {
+                                                    isCheckedIds
+                                                        .remove(item.id);
+                                                  }
+                                                });
+                                              },
+                                            );
+                                          }),
+                                        ],
+                                      );
+                                    }).toList()))),
                       ],
                     ),
                   );

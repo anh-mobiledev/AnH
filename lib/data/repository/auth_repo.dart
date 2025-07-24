@@ -52,7 +52,7 @@ class AuthRepo extends GetxService {
 
   Future<Response> verifyFirebaseIdTokenRepo(
       String firebaseTokenId, String firebaseUserId) async {
-    return await apiClient.postData(AppConstants.BASE_URL, {
+    return await apiClient.postData(AppConstants.FIREBASE_SIGNIN_URI, {
       'result_as': 'JSON',
       'firebase_token': firebaseTokenId,
       'firebase_uid': firebaseUserId

@@ -27,11 +27,16 @@ _body() {
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       LargeHeadingWidget(
         heading: 'Create Account',
+        headingTextColor: AppColors.secondaryColor,
         subHeading: 'Enter your Name, Email and Password for sign up.',
-        anotherTaglineText: '\nAlready have an account ?',
-        anotherTaglineColor: AppColors.secondaryColor,
+        subheadingTextColor: AppColors.paraColor,
+        anotherTaglineText: '\n \n Already have an account ?',
+        anotherTaglineColor: AppColors.primaryColor,
         subheadingTextSize: Dimensions.font16,
         taglineNavigation: true,
+      ),
+      const SizedBox(
+        height: 25,
       ),
       const RegisterForm(),
     ]),

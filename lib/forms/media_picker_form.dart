@@ -16,6 +16,7 @@ import 'package:pam_app/constants/widgets.dart';
 import 'package:pam_app/controllers/item_controller.dart';
 import 'package:pam_app/forms/howyouwanttodescribeit_form.dart';
 import 'package:pam_app/screens/addItem/add_item_images.dart';
+import 'package:pam_app/screens/addItem/items_list.dart';
 import 'package:pam_app/screens/addItem/whatdoyouwanttonameit.dart';
 import 'package:pam_app/widgets/small_text.dart';
 import 'package:path_provider/path_provider.dart';
@@ -415,7 +416,10 @@ class _MediaPickerFormState extends State<MediaPickerForm> {
           .then((result) {
         if (result.isSuccess) {
           Navigator.pop(context);
-          Navigator.of(context).pop(false);
+          // Navigator.of(context).pop(false);
+          Navigator.pushNamed(context, ItemsListScreen.screenId).then((vale) {
+            setState(() {});
+          });
         } else {}
       });
     }

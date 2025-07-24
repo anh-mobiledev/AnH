@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:pam_app/components/custom_icon_button.dart';
 import 'package:pam_app/constants/colours.dart';
@@ -19,6 +20,7 @@ class SignUpButtons extends StatefulWidget {
 
 class _SignUpButtonsState extends State<SignUpButtons> {
   Auth authService = Auth();
+  final storage = FlutterSecureStorage();
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -50,7 +52,16 @@ class _SignUpButtonsState extends State<SignUpButtons> {
           OutlinedButton.icon(
             onPressed: () async {
               User? user = await Auth.signInWithGoogle(context: context);
+
               if (user != null) {
+                final firebaseIdToken = await user.getIdToken();
+                final firebaseUid = await user.uid;
+
+                await storage.write(
+                    key: 'firebase_token', value: firebaseIdToken!);
+                await storage.write(
+                    key: 'firebase_user_id', value: firebaseUid);
+
                 authService.getAdminCredentialPhoneNumber(context, user);
               }
               /*Navigator.of(context).pushNamed(

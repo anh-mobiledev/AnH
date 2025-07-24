@@ -12,6 +12,7 @@ import 'package:pam_app/helper/DBHelper.dart';
 import 'package:pam_app/models/delete_myitem_failure_response.dart';
 import 'package:pam_app/models/item_info_sqllite.dart';
 import 'package:pam_app/models/my_items_server_model.dart';
+import 'package:pam_app/screens/addItem/add_item_images.dart';
 import 'package:pam_app/screens/addItem/item_details_view.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -55,15 +56,16 @@ class _ItemsListFormState extends State<ItemsListForm> {
   }
 
   Future<void> getMyItemsListServer() async {
-    await Get.find<ItemController>().getMyItemsListServer();
-
-    _isChecked =
-        List<bool>.filled(itemController.myItemsIndexListServer.length, false);
-
-    setState(() {
-      _isLoading = false;
+    await Get.find<ItemController>().getMyItemsListServer().then((__) {
+      _isChecked = List<bool>.filled(
+          itemController.myItemsIndexListServer.length, false);
       _filteredItems = itemController.myItemsIndexListServer;
     });
+
+    /* setState(() {
+      _isLoading = false;
+      _filteredItems = itemController.myItemsIndexListServer;
+    });*/
   }
 
   @override
@@ -95,37 +97,38 @@ class _ItemsListFormState extends State<ItemsListForm> {
   List<MyItemsServerModel> _filteredItems = [];
 
   void _filterList(String query) {
-    _searchQuery = query;
+    final allItems = Get.find<ItemController>().myItemsIndexListServer;
 
-    print('search query :: ${_searchQuery}');
+    if (query.isEmpty) {
+      // If search box is empty, show all items
 
-    final filtered = itemController.myItemsIndexListServer.where((item) {
-      final name = item.name?.toLowerCase() ?? '';
-      return name.contains(_searchQuery.toLowerCase());
-    }).toList();
-
-    print('Sorting by: $_sortBy, Order: $_order');
-
-    if (_sortBy == 'Name') {
-      filtered.sort((a, b) {
-        final nameA = a.name ?? '';
-        final nameB = b.name ?? '';
-        return _order == 'A-Z'
-            ? nameA.compareTo(nameB)
-            : nameB.compareTo(nameA);
-      });
-    } else if (_sortBy == 'Value') {
-      filtered.sort((a, b) {
-        final valueA = double.tryParse(a.valueAmount ?? '0') ?? 0;
-        final valueB = double.tryParse(b.valueAmount ?? '0') ?? 0;
-        return _order == 'A-Z'
-            ? valueA.compareTo(valueB)
-            : valueB.compareTo(valueA);
-      });
+      _filteredItems = List.from(allItems);
+    } else {
+      final lowerQuery = query.toLowerCase();
+      _filteredItems = allItems.where((item) {
+        return (item.name?.toLowerCase().contains(lowerQuery) ?? false) ||
+            (item.valueAmount?.toLowerCase().contains(lowerQuery) ?? false) ||
+            (item.valueUnits?.toLowerCase().contains(lowerQuery) ?? false);
+      }).toList();
     }
 
-    setState(() {
-      _filteredItems = filtered;
+    // Sort the filtered items
+    _filteredItems.sort((a, b) {
+      int cmp;
+      switch (_sortBy) {
+        case 'Name':
+          cmp = (a.name ?? '').compareTo(b.name ?? '');
+          break;
+        case 'Value':
+          cmp = (a.valueAmount ?? '').compareTo(b.valueAmount ?? '');
+          break;
+        case 'Unit':
+          cmp = (a.valueUnits ?? '').compareTo(b.valueUnits ?? '');
+          break;
+        default:
+          cmp = 0;
+      }
+      return _order == 'A-Z' ? cmp : -cmp;
     });
   }
 
@@ -133,228 +136,432 @@ class _ItemsListFormState extends State<ItemsListForm> {
   Widget build(BuildContext context) {
     // loadingDialogBox(context, "please wait...");
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Row(
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            color: Colors.white,
+            child: Text(
+              'My Items',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
             children: [
-              Expanded(
-                flex: 2,
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search by name',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    _filterList(_searchQuery);
-
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                ),
+              const SizedBox(
+                height: 40,
               ),
-              SizedBox(width: 10),
               Expanded(
-                flex: 1,
-                child: DropdownButtonFormField<String>(
-                  value: _sortBy,
-                  items: ['Name', 'Value'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text('$value'),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _sortBy = value!;
-                    });
-                    _filterList(_searchQuery);
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Filter',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                flex: 1,
-                child: DropdownButtonFormField<String>(
-                  value: _order,
-                  items: ['A-Z', 'Z-A'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _order = value!;
-                    });
-                    _filterList(_searchQuery);
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Sort',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          GetBuilder<ItemController>(
-            builder: (controller) {
-              return controller.isLoaded
-                  ? SingleChildScrollView(
-                      child: Container(
-                        constraints: BoxConstraints(
-                            minHeight: 100, minWidth: 100, maxHeight: 600),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius:
-                              BorderRadius.circular(Dimensions.radius30),
-                          boxShadow: [
-                            BoxShadow(
-                              blurRadius: 10,
-                              spreadRadius: 7,
-                              offset: Offset(1, 1),
-                              color: Colors.grey.withOpacity(0.2),
-                            )
-                          ],
+                child: GetBuilder<ItemController>(
+                  builder: (controller) {
+                    if (!controller.isLoaded) {
+                      return const SizedBox(
+                        height: 200,
+                        child: Center(
+                          child: Text(
+                            'No records found',
+                            style: TextStyle(fontSize: 15),
+                          ),
                         ),
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(5.0),
-                          itemCount: _filteredItems == null
-                              ? 0
-                              : _filteredItems.length,
-                          itemBuilder: (context, index) {
-                            final item = _filteredItems[index];
-                            return Slidable(
-                              key: ValueKey(item),
-                              endActionPane: ActionPane(
-                                motion: ScrollMotion(),
-                                dismissible: DismissiblePane(
-                                    onDismissed: () => _showDeleteConfirmDialog(
-                                        context, index)),
+                      );
+                    }
+                    return SizedBox(
+                      width: Dimensions.screenWidth,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(3.0),
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Search by name',
+                                prefixIcon: Icon(Icons.search),
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value;
+                                });
+
+                                _filterList(_searchQuery);
+                              },
+                            ),
+                          ),
+                          SizedBox(
+                            height: Dimensions.height30,
+                            child: Align(
+                              alignment: Alignment.topLeft,
+                              child: Text(
+                                'Tab the column header name for sorting',
+                                style: TextStyle(color: AppColors.primaryColor),
+                              ),
+                            ),
+                          ),
+                          Table(
+                            border:
+                                TableBorder.all(width: 0.5, color: Colors.grey),
+                            columnWidths: const {
+                              0: FixedColumnWidth(60), // Image
+                              1: FlexColumnWidth(), // Name
+                              2: FixedColumnWidth(65), // Value
+                              3: FixedColumnWidth(55), // Unit
+                              4: FixedColumnWidth(40), // Unit
+                              5: FixedColumnWidth(40), // Unit
+                            },
+                            children: [
+                              TableRow(
+                                decoration:
+                                    BoxDecoration(color: Colors.grey[200]),
                                 children: [
-                                  SlidableAction(
-                                    onPressed: (context) => _shareItem(
-                                        name: item.name!,
-                                        description: item.description! ?? 'NA',
-                                        price: item.valueAmount!,
-                                        imageUrl: item.primary_img_url!),
-                                    backgroundColor: Colors.blue,
-                                    foregroundColor: Colors.white,
-                                    icon: Icons.share,
-                                    label: 'Share',
+                                  // Preview header (not clickable)
+                                  const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Text('Preview',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                   ),
-                                  SlidableAction(
-                                    onPressed: (context) =>
-                                        _showDeleteConfirmDialog(
-                                            context, index),
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                    icon: Icons.delete,
-                                    label: 'Delete',
+
+                                  // Name header clickable
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (_sortBy == 'Name') {
+                                          _order =
+                                              (_order == 'A-Z') ? 'Z-A' : 'A-Z';
+                                        } else {
+                                          _sortBy = 'Name';
+                                          _order = 'A-Z';
+                                        }
+                                        _filterList(_searchQuery);
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Row(
+                                        children: [
+                                          const Text('Name',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                          if (_sortBy == 'Name')
+                                            Icon(
+                                                _order == 'A-Z'
+                                                    ? Icons.arrow_upward
+                                                    : Icons.arrow_downward,
+                                                size: 16),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Value header clickable
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (_sortBy == 'Value') {
+                                          _order =
+                                              (_order == 'A-Z') ? 'Z-A' : 'A-Z';
+                                        } else {
+                                          _sortBy = 'Value';
+                                          _order = 'A-Z';
+                                        }
+                                        _filterList(_searchQuery);
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Row(
+                                        children: [
+                                          const Text('Value',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                          if (_sortBy == 'Value')
+                                            Icon(
+                                                _order == 'A-Z'
+                                                    ? Icons.arrow_upward
+                                                    : Icons.arrow_downward,
+                                                size: 16),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Unit header clickable
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (_sortBy == 'Unit') {
+                                          _order =
+                                              (_order == 'A-Z') ? 'Z-A' : 'A-Z';
+                                        } else {
+                                          _sortBy = 'Unit';
+                                          _order = 'A-Z';
+                                        }
+                                        _filterList(_searchQuery);
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Row(
+                                        children: [
+                                          const Text('Unit',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                          if (_sortBy == 'Unit')
+                                            Icon(
+                                                _order == 'A-Z'
+                                                    ? Icons.arrow_upward
+                                                    : Icons.arrow_downward,
+                                                size: 16),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Text('-',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+
+                                  const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Text('-',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
                                   ),
                                 ],
                               ),
-                              child: Card(
-                                child: InkWell(
-                                  onTap: () async {
-                                    Navigator.of(context).pushNamed(
-                                        ItemDetailsViewScreen.screenId,
-                                        arguments: item);
-                                  },
-                                  child: ListTile(
-                                    leading: FutureBuilder<ImageProvider?>(
-                                      future: _getThumbnailImage(
-                                          item.primary_img_url!),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return const SizedBox(
-                                            height: 60,
-                                            width: 60,
-                                            child: Center(
-                                                child:
-                                                    CircularProgressIndicator(
-                                                        strokeWidth: 2)),
-                                          );
-                                        }
+                            ],
+                          ),
+                          SizedBox(
+                            height: 500,
+                            child: SingleChildScrollView(
+                              child: Table(
+                                border: TableBorder.all(
+                                    width: 0.5, color: Colors.grey),
+                                columnWidths: const {
+                                  0: FixedColumnWidth(60),
+                                  1: FlexColumnWidth(),
+                                  2: FixedColumnWidth(65),
+                                  3: FixedColumnWidth(55),
+                                  4: FixedColumnWidth(40),
+                                  5: FixedColumnWidth(40),
+                                },
+                                children:
+                                    _filteredItems.asMap().entries.map((entry) {
+                                  int index = entry.key;
+                                  var item = entry.value;
+                                  return TableRow(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(4.0),
+                                        child: FutureBuilder<ImageProvider?>(
+                                          future: _getThumbnailImage(
+                                              item.primary_img_url!),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return const SizedBox(
+                                                height: 60,
+                                                width: 60,
+                                                child: Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                            strokeWidth: 2)),
+                                              );
+                                            }
 
-                                        if (snapshot.hasData &&
-                                            snapshot.data != null) {
-                                          return Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                child: Image(
-                                                  image: snapshot.data!,
-                                                  height: 60,
-                                                  width: 60,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                              if (_isVideo(
-                                                  item.primary_img_url!))
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) =>
-                                                            VideoPlayerScreen(
-                                                                videoUrl: (item
-                                                                    .primary_img_url!)),
+                                            if (snapshot.hasData &&
+                                                snapshot.data != null) {
+                                              return Stack(
+                                                alignment: Alignment.center,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      Navigator.of(context)
+                                                          .pushNamed(
+                                                        ItemDetailsViewScreen
+                                                            .screenId,
+                                                        arguments: item,
+                                                      );
+                                                    },
+                                                    child: ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6),
+                                                      child: Image(
+                                                        image: snapshot.data!,
+                                                        height: 60,
+                                                        width: 60,
+                                                        fit: BoxFit.cover,
                                                       ),
-                                                    );
-                                                  },
-                                                  child: const Icon(
-                                                      Icons.play_circle_fill,
-                                                      color: Colors.white70,
-                                                      size: 24),
-                                                ),
-                                            ],
+                                                    ),
+                                                  ),
+                                                  if (_isVideo(
+                                                      item.primary_img_url!))
+                                                    GestureDetector(
+                                                      onTap: () {
+                                                        Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                            builder: (_) =>
+                                                                VideoPlayerScreen(
+                                                                    videoUrl: item
+                                                                        .primary_img_url!),
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: const Icon(
+                                                          Icons
+                                                              .play_circle_fill,
+                                                          color: Colors.white70,
+                                                          size: 24),
+                                                    ),
+                                                ],
+                                              );
+                                            } else {
+                                              return const Icon(
+                                                  Icons.broken_image,
+                                                  size: 60);
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).pushNamed(
+                                            ItemDetailsViewScreen.screenId,
+                                            arguments: item,
                                           );
-                                        } else {
-                                          return const Icon(Icons.broken_image,
-                                              size: 60);
-                                        }
-                                      },
-                                    ),
-                                    title: Text(item.name ?? ''),
-                                    subtitle: Text(item.valueAmount ?? ''),
-                                  ),
-                                ),
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            item.name ?? '',
+                                            style: TextStyle(
+                                              color: Colors
+                                                  .blue, // Optional: show it's clickable
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).pushNamed(
+                                            ItemDetailsViewScreen.screenId,
+                                            arguments: item,
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            item.valueAmount ?? '',
+                                            style: TextStyle(
+                                                color: AppColors.paraColor),
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).pushNamed(
+                                            ItemDetailsViewScreen.screenId,
+                                            arguments: item,
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            '${item.valueUnits}',
+                                            style: TextStyle(
+                                                color: AppColors.paraColor),
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          _shareItem(
+                                              name: item.name!,
+                                              price: item.valueAmount!,
+                                              description: item.description!,
+                                              imageUrl: item.primary_img_url!);
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Icon(
+                                            Icons.share,
+                                            color: AppColors.secondaryColor,
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          _showDeleteConfirmDialog(
+                                              context, index);
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                    )
-                  : const Padding(
-                      padding: EdgeInsets.only(top: 200),
-                      child: Center(
-                        child: Text(
-                          "No records found, please click + to add.",
-                          style: TextStyle(fontSize: 15),
-                        ),
+                            ),
+                          )
+                        ],
                       ),
                     );
-            },
-          )
-        ],
-      ),
+                  },
+                ),
+              )
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: SizedBox(
+            height: 50,
+            width: 50,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.secondaryColor,
+                side: BorderSide(
+                  color: AppColors.secondaryColor,
+                ),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    side: BorderSide(color: AppColors.secondaryColor)),
+              ),
+              onPressed: () {
+                Navigator.of(context).pushNamed(AddItemImagesScreen.screenId);
+              },
+              child: Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        )
+      ],
     );
   }
 

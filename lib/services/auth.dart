@@ -7,12 +7,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:pam_app/constants/app_contants.dart';
 import 'package:pam_app/constants/widgets.dart';
+import 'package:pam_app/controllers/auth_controller.dart';
 import 'package:pam_app/screens/auth/email_verify_screen.dart';
 import 'package:pam_app/screens/auth/phone_otp_screen.dart';
-import 'package:pam_app/screens/firebase_signin.dart';
+
 import 'package:pam_app/screens/home_screen.dart';
 import 'package:pam_app/screens/location_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,8 +30,7 @@ class Auth {
   String _userId = "";
   String get userId => _userId;
 
-  String _firebaseToken = "";
-  String get firebaseToken => _firebaseToken;
+  var authController = Get.find<AuthController>();
 
   /* CollectionReference categories =
       FirebaseFirestore.instance.collection('categories');
@@ -40,23 +41,29 @@ class Auth {
 */
   late SharedPreferences sharedPreferences;
   Future<void> getAdminCredentialPhoneNumber(BuildContext context, user) async {
-    sharedPreferences = await SharedPreferences.getInstance();
+    loadingDialogBox(context, 'Validating details');
+
+    final String firebaseUserId = user!.uid; // 🔑 Firebase User ID
+    final String firebaseIdToken =
+        await user.getIdToken(); // 🔐 Firebase ID Token
+
+    print('Firebase UID: $firebaseUserId');
+    print('Firebase ID Token: $firebaseIdToken');
 
     final QuerySnapshot userDataQuery =
         await users.where('uid', isEqualTo: user!.uid).get();
+
     List<DocumentSnapshot> wasUserPresentInDatabase = userDataQuery.docs;
     if (wasUserPresentInDatabase.isNotEmpty) {
-      if (currentUser != null) {
-        _userId = currentUser!.uid;
-        _firebaseToken = (await currentUser?.getIdToken(true))!;
-        storage.write(key: 'firebase_token', value: _firebaseToken);
-        storage.write(key: 'firebase_user_id', value: _userId);
+      // String? firebaseIdToken = await storage.read(key: 'firebase_token');
+      // String? firebaseUserId = await storage.read(key: 'firebase_user_id');
+
+      final result = await authController.verifyFirebaseIdTokenController(
+          firebaseIdToken, firebaseUserId);
+      Navigator.pop(context);
+      if (result.isSuccess) {
+        Navigator.pushReplacementNamed(context, HomeScreen.screenId);
       }
-
-      //sharedPreferences.setString(AppConstants.UID, user!.uid);
-      // Navigator.pushReplacementNamed(context, HomeScreen.screenId);
-
-      Navigator.pushReplacementNamed(context, FirebaseSignIn.screenId);
     } else {
       await registerWithPhoneNumber(user, context);
     }
@@ -64,9 +71,15 @@ class Auth {
 
   Future<void> registerWithPhoneNumber(user, context) async {
     final uid = user!.uid;
-    final mobileNo = user!.phoneNumber;
-    final email = user!.email;
-    Navigator.pushReplacementNamed(context, LocationScreen.screenId);
+    final mobileNo = user.phoneNumber;
+    final email = user.email;
+
+    // 🔐 Get the Firebase ID token
+    final _firebaseToken = await user.getIdToken();
+
+    await storage.write(key: 'firebase_token', value: _firebaseToken);
+    await storage.write(key: 'firebase_user_id', value: uid);
+
     return users.doc(uid).set({
       'uid': uid,
       'mobile': mobileNo,
@@ -74,10 +87,17 @@ class Auth {
       'name': '',
       'address': ''
     }).then((value) {
+      authController
+          .verifyFirebaseIdTokenController(_firebaseToken, uid)
+          .then((result) {
+        if (result.isSuccess) {
+          Navigator.pushReplacementNamed(context, HomeScreen.screenId);
+        }
+      }).catchError((error) => print("Failed to get auth_token: $error"));
+
       if (kDebugMode) {
-        print('user added successfully');
+        print('User added successfully');
       }
-      // ignore: invalid_return_type_for_catch_error, avoid_print
     }).catchError((error) => print("Failed to add user: $error"));
   }
 
@@ -135,6 +155,7 @@ class Auth {
       String verificationId, String smsCode, BuildContext context) async {
     try {
       loadingDialogBox(context, 'Please Wait');
+
       AuthCredential credential = PhoneAuthProvider.credential(
           verificationId: verificationId, smsCode: smsCode);
 
@@ -142,34 +163,71 @@ class Auth {
           await _firebaseAuth.signInWithCredential(credential);
 
       Navigator.of(context, rootNavigator: true).pop();
-      if (userCredential != null) {
-        _userId = userCredential.user!.uid;
-        _firebaseToken = (await userCredential.user?.getIdToken(true))!;
 
-        storage.write(key: 'firebase_token', value: _firebaseToken);
-        storage.write(key: 'firebase_user_id', value: _userId);
+      final user = userCredential.user;
 
-        getAdminCredentialPhoneNumber(context, userCredential.user);
+      if (user != null) {
+        await user.reload(); // refresh session
+        final _firebaseToken = await user.getIdToken(); // don't force refresh
+
+        // print('Firebase Token: $_firebaseToken');
+
+        await storage.write(key: 'firebase_token', value: _firebaseToken);
+        await storage.write(key: 'firebase_user_id', value: user.uid);
+
+        getAdminCredentialPhoneNumber(context, user);
       } else {
         wrongDetailsAlertBox('Login Failed, Please retry again.', context);
       }
     } catch (e) {
       Navigator.pop(context);
+      print('Firebase login error: $e');
       wrongDetailsAlertBox(
-          'The details you entered is not matching with our database. Please validate details again, before proceeding. ',
+          'The details you entered is not matching with our database. Please validate details again, before proceeding.',
           context);
     }
   }
 
   Future<void> signInWithFacebook({required BuildContext context}) async {
     try {
+      loadingDialogBox(context, 'Please Wait');
+
       final LoginResult result = await FacebookAuth.instance.login();
+
+      print("Login result: ${result.status}");
+      print("Access Token: ${result.accessToken?.token}");
+
       if (result.status == LoginStatus.success) {
+        print("Login success!");
+
         // Create a credential from the access token
         final OAuthCredential credential =
             FacebookAuthProvider.credential(result.accessToken!.token);
 
-        await FirebaseAuth.instance.signInWithCredential(credential);
+        UserCredential userCredential =
+            await FirebaseAuth.instance.signInWithCredential(credential);
+
+        String? _firebaseIdToken = await userCredential.user?.getIdToken();
+        String? _firebaseUserId = await userCredential.user?.uid;
+
+        print(
+            "Firebase ID Token: $_firebaseIdToken \n Firebase UID $_firebaseUserId");
+
+        await storage.write(key: 'firebase_token', value: _firebaseIdToken);
+        await storage.write(
+            key: 'firebase_user_id', value: userCredential.user?.uid);
+
+        if (_firebaseIdToken != null) {
+          print('verify firebase sign in token');
+          final result = await authController.verifyFirebaseIdTokenController(
+              _firebaseIdToken, _firebaseUserId!);
+          print('firebase sign in response message:: ${result.message}');
+
+          Navigator.pop(context);
+          if (result.isSuccess) {
+            Navigator.pushReplacementNamed(context, HomeScreen.screenId);
+          }
+        }
       }
     } on FirebaseAuthException catch (e) {
       customSnackBar(context: context, content: e.message!);
@@ -284,16 +342,16 @@ class Auth {
       }
       Navigator.pop(context);
       if (credential.user!.uid != null) {
-        _userId = credential.user!.uid;
-        _firebaseToken = (await credential.user?.getIdToken(true))!;
+        final _firebaseToken = await credential.user!.getIdToken();
 
-        storage.write(key: 'firebase_token', value: _firebaseToken);
-        storage.write(key: 'firebase_user_id', value: _userId);
-
-        sharedPreferences.setString(AppConstants.UID, credential.user!.uid);
-
-        // Navigator.pushReplacementNamed(context, HomeScreen.screenId);
-        Navigator.pushReplacementNamed(context, FirebaseSignIn.screenId);
+        authController
+            .verifyFirebaseIdTokenController(
+                _firebaseToken!, credential.user!.uid)
+            .then((result) {
+          if (result.isSuccess) {
+            Navigator.pushReplacementNamed(context, HomeScreen.screenId);
+          }
+        }).catchError((error) => print('Failed to get auth_token $error'));
       } else {
         customSnackBar(
             context: context, content: 'Please check with your credentials');
@@ -334,15 +392,6 @@ class Auth {
         'address': ''
       }).then((value) async {
         await credential.user!.sendEmailVerification().then((value) {
-          _userId = credential.user!.uid;
-          _firebaseToken = credential.user!.getIdToken.toString();
-          storage.write(key: 'firebase_token', value: _firebaseToken);
-          storage.write(key: 'firebase_user_id', value: _userId);
-
-          print(
-              'user id, firebase auth_token :: ${_userId}  ${_firebaseToken}');
-
-          sharedPreferences.setString(AppConstants.UID, credential.user!.uid);
           Navigator.pushReplacementNamed(context, EmailVerifyScreen.screenId);
         });
 
@@ -382,7 +431,7 @@ class Auth {
 
   static Future<String?> getIdToken() async {
     FirebaseAuth _auth = FirebaseAuth.instance;
-    return await _auth.currentUser?.getIdToken(true);
+    return await _auth.currentUser?.getIdToken();
   }
 
   static String? getUid() {

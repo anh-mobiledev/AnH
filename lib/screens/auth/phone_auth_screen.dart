@@ -72,7 +72,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
             backgroundColor: AppColors.whiteColor,
             iconTheme: IconThemeData(color: AppColors.blackColor),
             title: Text(
-              widget.isFromLogin ? 'Login' : 'Signup',
+              widget.isFromLogin ? 'Login' : 'Sign up',
               style: TextStyle(color: AppColors.blackColor),
             )),
         body: _body(context),

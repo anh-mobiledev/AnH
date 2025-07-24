@@ -12,6 +12,7 @@ import 'package:pam_app/screens/addItem/upload_image.dart';
 import 'package:pam_app/screens/addItem/upload_video.dart';
 import 'package:pam_app/screens/auth/sign_in_with_email_password_screen.dart';
 import 'package:pam_app/screens/auth/sign_in_with_username_password_screen.dart';
+
 import 'package:pam_app/screens/intro_screen.dart';
 
 import 'package:pam_app/screens/managepeople/contact_list.dart';

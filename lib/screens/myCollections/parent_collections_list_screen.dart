@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:pam_app/screens/myCollections/add_parent_collection_screen.dart';
 
 import '../../constants/colours.dart';
 import '../../forms/myCollections/parent_collections_list_form.dart';
@@ -50,21 +51,22 @@ class _ParentCollectionsListScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: AppColors.secondaryColor,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).pushNamed(HomeScreen.screenId);
-            },
-          ),
-          title: Text(
-            'My Collections',
-            style: TextStyle(color: AppColors.whiteColor),
-          ),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: AppColors.secondaryColor,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pushNamed(HomeScreen.screenId);
+          },
         ),
-        body: _body());
+        title: Text(
+          'My Collections',
+          style: TextStyle(color: AppColors.whiteColor),
+        ),
+      ),
+      body: _body(),
+    );
   }
 
   _body() {

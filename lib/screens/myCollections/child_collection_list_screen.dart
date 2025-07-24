@@ -59,32 +59,31 @@ class _ChildCollectionsListScreenState
       collectionId = arguments['collectionId'];
     });
     return Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: AppColors.secondaryColor,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context)
-                  .pushNamed(ParentCollectionsListScreen.screenId);
-            },
-          ),
-          title: Text(
-            title ?? "Assets and Heirlooms",
-            style: TextStyle(color: AppColors.whiteColor),
-          ),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: AppColors.secondaryColor,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context)
+                .pushNamed(ParentCollectionsListScreen.screenId);
+          },
         ),
-        body: _body());
+        title: Text(
+          title ?? "Assets and Heirlooms",
+          style: TextStyle(color: AppColors.whiteColor),
+        ),
+      ),
+      body: _body(),
+    );
   }
 
   _body() {
     return Stack(
       children: [
-        SingleChildScrollView(
-          child: ChildCollectionsListForm(
-            title,
-            collectionId!,
-          ),
+        ChildCollectionsListForm(
+          title,
+          collectionId!,
         )
       ],
     );

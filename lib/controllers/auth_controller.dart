@@ -84,11 +84,13 @@ class AuthController extends GetxController implements GetxService {
     Response response =
         await authRepo.verifyFirebaseIdTokenRepo(firebaseIdToken, firebaseUid);
 
+    print(response.body.toString());
     late ResponseModel responseModel;
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       await storage.write(key: 'app_token', value: response.body['auth_token']);
-      await storage.write(key: 'userId', value: response.body['user_id']);
+      await storage.write(
+          key: 'userId', value: response.body['data']['user_id']);
 
       responseModel = ResponseModel(
           true, response.body['auth_token'], response.body['message']);

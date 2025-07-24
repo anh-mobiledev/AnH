@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import 'package:pam_app/controllers/auth_controller.dart';
 import 'package:pam_app/models/delete_myitem_failure_response.dart';
 import 'package:pam_app/models/item_details_create_body.dart';
 import 'package:pam_app/models/item_image.dart';
@@ -54,9 +55,11 @@ class ItemController extends GetxController {
   late String _myItemId;
   String get myItemId => _myItemId;
 
+  var authController = Get.find<AuthController>();
+
   static Future<String?> getFirebaseToken() async {
     FirebaseAuth _auth = FirebaseAuth.instance;
-    return await _auth.currentUser?.getIdToken(true);
+    return await _auth.currentUser?.getIdToken();
   }
 
   static String? getFirebaseUid() {
@@ -231,12 +234,22 @@ class ItemController extends GetxController {
   Future<void> getMyItemsListServer() async {
     try {
       final appToken = await storage.read(key: 'app_token');
+      final userId = await storage.read(key: 'user_id');
 
       String? token;
 
       //Firebase token
       if (appToken == null) {
-        token = await Auth.getIdToken();
+        String? fbIdToken = await Auth.getIdToken();
+        String? fbUserId = await Auth.getUid();
+
+        authController
+            .verifyFirebaseIdTokenController(fbIdToken!, fbUserId!)
+            .then((result) {
+          if (result.isSuccess) {
+            token = result.authToken;
+          }
+        });
       } else {
         token = appToken;
       }

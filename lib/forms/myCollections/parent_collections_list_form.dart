@@ -27,6 +27,10 @@ class _ParentCollectionsListFormState extends State<ParentCollectionsListForm> {
   late SharedPreferences sharedPreferences;
   List<CollectionsServerModel> _collections = [];
 
+  String _searchQuery = '';
+  String _sortBy = 'Name';
+  String _order = 'A-Z';
+
   @override
   void initState() {
     // TODO: implement initState
@@ -40,6 +44,40 @@ class _ParentCollectionsListFormState extends State<ParentCollectionsListForm> {
     });
   }
 
+  void _filterList(String query) {
+    final allCollections =
+        Get.find<MyCollectionsController>().myCollectionsIndexList;
+
+    if (query.isEmpty) {
+      // If search box is empty, show all items
+
+      _collections = List.from(allCollections);
+    } else {
+      final lowerQuery = query.toLowerCase();
+      _collections = allCollections.where((item) {
+        return (item.name?.toLowerCase().contains(lowerQuery) ?? false) ||
+            (item.description?.toLowerCase().contains(lowerQuery) ?? false);
+      }).toList();
+    }
+
+    // Sort the filtered items
+    _collections.sort((a, b) {
+      int cmp;
+      switch (_sortBy) {
+        case 'Name':
+          cmp = (a.name ?? '').compareTo(b.name ?? '');
+          break;
+        case 'Description':
+          cmp = (a.description ?? '').compareTo(b.description ?? '');
+          break;
+
+        default:
+          cmp = 0;
+      }
+      return _order == 'A-Z' ? cmp : -cmp;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // myCollectionController.readJson();
@@ -49,222 +87,278 @@ class _ParentCollectionsListFormState extends State<ParentCollectionsListForm> {
         .getCollectionsList(myCollectionController.getUserToken());*/
     // _loadCollections();
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Container(
-            width: 150.0,
-            height: 50.0,
-            child: Align(
-              alignment: Alignment.topRight,
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: AppColors.secondaryColor,
-                      side: BorderSide(
-                        color: AppColors.secondaryColor,
-                      ),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                          side: BorderSide(color: AppColors.secondaryColor)),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context)
-                          .pushNamed(AddParentCollectionScreen.screenId);
-                    },
-                    child: Icon(
-                      Icons.add,
-                      color: Colors.white,
-                    )),
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            color: Colors.white,
+            child: Text(
+              'My Collections',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryColor,
               ),
             ),
           ),
-          Container(
-            height: 700,
-            child: GetBuilder<MyCollectionsController>(
-              builder: (controller) {
-                return controller.isLoaded
-                    ? SingleChildScrollView(
-                        child: Container(
-                          constraints: BoxConstraints(
-                              minHeight: 100, minWidth: 100, maxHeight: 600),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius:
-                                BorderRadius.circular(Dimensions.radius30),
-                            boxShadow: [
-                              BoxShadow(
-                                blurRadius: 10,
-                                spreadRadius: 7,
-                                offset: Offset(1, 1),
-                                color: Colors.grey.withOpacity(0.2),
-                              )
-                            ],
-                          ),
-                          margin: EdgeInsets.only(
-                              left: Dimensions.width10,
-                              right: Dimensions.width10,
-                              top: Dimensions.height20),
-                          child: ListView.builder(
-                            padding: const EdgeInsets.all(10.0),
-                            itemCount:
-                                _collections == null ? 0 : _collections.length,
-                            // controller.parentCollectionsIndexList.length,
-                            shrinkWrap: true,
-                            itemBuilder: (BuildContext context, int index) {
-                              final myCollections = _collections[index];
-                              return Slidable(
-                                key: ValueKey(myCollections),
-                                endActionPane: ActionPane(
-                                  motion: ScrollMotion(),
-                                  dismissible: DismissiblePane(
-                                    onDismissed: () => _showDeleteConfirmDialog(
-                                        context, index),
-                                  ),
-                                  children: [
-                                    SlidableAction(
-                                      onPressed: (context) =>
-                                          _showDeleteConfirmDialog(
-                                              context, index),
-                                      backgroundColor: Colors.red,
-                                      foregroundColor: Colors.white,
-                                      icon: Icons.delete,
-                                      label: 'Delete',
-                                    ),
-                                  ],
-                                ),
-                                child: Card(
-                                    child: InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).pushNamed(
-                                        ChildCollectionsListScreen.screenId,
-                                        arguments: {
-                                          'collectionId': controller
-                                              .myCollectionsIndexList[index].id,
-                                          'name': controller
-                                              .myCollectionsIndexList[index]
-                                              .name
-                                        });
-                                  },
-                                  child: ListTile(
-                                      /* leading: Icon(IconData(
-                                          controller.myCollectionsIndexList[index]
-                                              .iconId!,
-                                          fontFamily: 'MaterialIcons')),*/
-                                      leading: Icon(Icons.comment),
-                                      title: Text(controller
-                                          .myCollectionsIndexList[index].name!),
-                                      subtitle: Text(
-                                        controller.myCollectionsIndexList[index]
-                                            .description!,
-                                      )),
-                                )),
-                              );
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 40,
+              ),
+              GetBuilder<MyCollectionsController>(
+                builder: (controller) {
+                  if (!controller.isLoaded) {
+                    return const SizedBox(
+                      height: 200,
+                      child: Center(
+                        child: Text(
+                          'No records found',
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ),
+                    );
+                  }
+                  return SizedBox(
+                    width: Dimensions.screenWidth,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Search by name',
+                              prefixIcon: Icon(Icons.search),
+                              border: OutlineInputBorder(),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value;
+                              });
+
+                              _filterList(_searchQuery);
                             },
                           ),
                         ),
-                      )
-                    : const Padding(
-                        padding: EdgeInsets.only(top: 200),
-                        child: Center(
-                          child: Text(
-                            "No records found, please click + to add.",
-                            style: TextStyle(fontSize: 15),
+                        SizedBox(
+                          height: Dimensions.height30,
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: Text(
+                              'Tab the column header name for sorting',
+                              style: TextStyle(color: AppColors.primaryColor),
+                            ),
                           ),
                         ),
-                      );
-              },
-            ),
-          )
-        ],
-      ),
-    );
+                        Table(
+                          border:
+                              TableBorder.all(width: 0.5, color: Colors.grey),
+                          columnWidths: const {
+                            0: FlexColumnWidth(), // Namee
+                            1: FlexColumnWidth(), // Desc
 
-    /*Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Card(
-              elevation: 0,
-              color: Colors.grey.shade100,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  leading: Container(
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.blue, width: 2)),
-                    child: CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.transparent,
-                      backgroundImage: NetworkImage(myCollectionController
-                          .myCollectionsIndexList[position]["image"]),
-                    ),
-                  ),
-                  title: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Center(
-                        child: Text(
-                            myCollectionController
-                                .myCollectionsIndexList[position]["name"],
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18))),
-                  ),
-                  subtitle: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        SmallText(
-                          text: "current vlaue",
-                          color: AppColors.paraColor,
+                            2: FixedColumnWidth(40),
+                          },
+                          children: [
+                            TableRow(
+                              decoration:
+                                  BoxDecoration(color: Colors.grey[200]),
+                              children: [
+                                // Name header clickable
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      if (_sortBy == 'Name') {
+                                        _order =
+                                            (_order == 'A-Z') ? 'Z-A' : 'A-Z';
+                                      } else {
+                                        _sortBy = 'Name';
+                                        _order = 'A-Z';
+                                      }
+                                      _filterList(_searchQuery);
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Row(
+                                      children: [
+                                        const Text('Name',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                        if (_sortBy == 'Name')
+                                          Icon(
+                                              _order == 'A-Z'
+                                                  ? Icons.arrow_upward
+                                                  : Icons.arrow_downward,
+                                              size: 16),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                // Desc header clickable
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      if (_sortBy == 'Description') {
+                                        _order =
+                                            (_order == 'A-Z') ? 'Z-A' : 'A-Z';
+                                      } else {
+                                        _sortBy = 'Description';
+                                        _order = 'A-Z';
+                                      }
+                                      _filterList(_searchQuery);
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Row(
+                                      children: [
+                                        const Text('Description',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                        if (_sortBy == 'Description')
+                                          Icon(
+                                              _order == 'A-Z'
+                                                  ? Icons.arrow_upward
+                                                  : Icons.arrow_downward,
+                                              size: 16),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                const Padding(
+                                  padding: EdgeInsets.all(8),
+                                  child: Text('-',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        BigText(
-                          text:
-                              "\$${myCollectionController.myCollectionsIndexList[position]["price"]}",
-                        ),
+                        SizedBox(
+                          height: 500,
+                          child: SingleChildScrollView(
+                            child: Table(
+                              border: TableBorder.all(
+                                  width: 0.5, color: Colors.grey),
+                              columnWidths: const {
+                                0: FlexColumnWidth(),
+                                1: FlexColumnWidth(),
+                                2: FixedColumnWidth(40),
+                              },
+                              children:
+                                  _collections.asMap().entries.map((entry) {
+                                int index = entry.key;
+                                var item = entry.value;
+                                return TableRow(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).pushNamed(
+                                            ChildCollectionsListScreen.screenId,
+                                            arguments: {
+                                              'collectionId': item.id,
+                                              'name': item.name
+                                            });
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          item.name ?? '',
+                                          style: TextStyle(
+                                            color: Colors
+                                                .blue, // Optional: show it's clickable
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).pushNamed(
+                                            ChildCollectionsListScreen.screenId,
+                                            arguments: {
+                                              'collectionId': item.id,
+                                              'name': item.name
+                                            });
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          item.description ?? '',
+                                          style: TextStyle(
+                                              color: AppColors.paraColor),
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        _showDeleteConfirmDialog(
+                                            context, index);
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        )
                       ],
                     ),
-                  ),
-                  trailing: IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.edit,
-                      )),
+                  );
+                },
+              )
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: SizedBox(
+            height: 50,
+            width: 50,
+            child: TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.secondaryColor,
+                side: BorderSide(
+                  color: AppColors.secondaryColor,
                 ),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    side: BorderSide(color: AppColors.secondaryColor)),
+              ),
+              onPressed: () {
+                Navigator.of(context)
+                    .pushNamed(AddParentCollectionScreen.screenId);
+              },
+              child: Icon(
+                Icons.add,
+                color: Colors.white,
               ),
             ),
-          );*/
-    /*return Card(
-                margin: const EdgeInsets.all(10),
-                child: ListTile(
-                  leading: SizedBox(
-                    width: 100,
-                    child: Image.file(
-                      File(itemsList[position].item_image!),
-                      fit: BoxFit.fill,
-                    ),
-                  ),
-                  title: BigText(text: itemsList[position].item_name!),
-                  subtitle: SmallText(
-                    text: itemsList[position].item_desc!,
-                    color: AppColors.paraColor,
-                  ),
-                  trailing: SmallText(text: itemsList[position].item_value!),
-                  onTap: () async {
-                    sharedPreferences = await SharedPreferences.getInstance();
-                    await sharedPreferences.setInt(
-                        "rowid", itemsList[position].id!);
-
-                    Navigator.of(context)
-                        .pushNamed(ItemDetailsViewScreen.screenId);
-                  },
-                ),
-              );)*/
+          ),
+        ),
+      ],
+    );
   }
 
   Dialogs alert = Dialogs();

@@ -64,25 +64,12 @@ class _ItemsListScreenState extends State<ItemsListScreen> {
         ),
       ),
       body: _body(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).pushNamed(AddItemImagesScreen.screenId);
-        },
-        child: Icon(Icons.add), // You can use any icon
-        tooltip: 'Add items',
-        backgroundColor: Colors.blue, // Optional customization
-      ),
     );
   }
 
   _body() {
     return Stack(
-      children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: ItemsListForm(),
-        )
-      ],
+      children: [ItemsListForm()],
     );
   }
 }

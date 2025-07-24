@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:io/ansi.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:pam_app/common/alert.dart';
 import 'package:pam_app/constants/colours.dart';
@@ -106,6 +107,8 @@ class _LoginInButtonsState extends State<LoginInButtons> {
               "Token not found. Please login manually first.");
 
           return;
+        } else {
+          Navigator.of(context).pushNamed(HomeScreen.screenId);
         }
       } else {
         print("Authentication failed.");
@@ -128,13 +131,13 @@ class _LoginInButtonsState extends State<LoginInButtons> {
               onPressed: authenticateUser,
               style: OutlinedButton.styleFrom(
                 minimumSize: Size(260, 60),
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.secondaryColor,
                 side: BorderSide(color: Colors.grey.shade300),
               ),
               icon: FaIcon(FontAwesomeIcons.fingerprint,
-                  color: Color(0xFF1877F2)),
+                  color: AppColors.whiteColor),
               label: Text('Sign in Face ID / Biomatrics',
-                  style: TextStyle(color: Colors.black87)),
+                  style: TextStyle(color: AppColors.whiteColor)),
             ),
           ),
           const SizedBox(
@@ -149,31 +152,14 @@ class _LoginInButtonsState extends State<LoginInButtons> {
               },
               style: OutlinedButton.styleFrom(
                 minimumSize: Size(260, 60),
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.secondaryColor,
                 side: BorderSide(color: Colors.grey.shade300),
               ),
-              icon: FaIcon(FontAwesomeIcons.user, color: Color(0xFF1877F2)),
+              icon: FaIcon(FontAwesomeIcons.user, color: AppColors.whiteColor),
               label: Text('Sign in with username/password',
-                  style: TextStyle(color: Colors.black87)),
+                  style: TextStyle(color: AppColors.whiteColor)),
             ),
           ),
-          /*Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: OutlinedButton.icon(
-              onPressed: () async {
-                Navigator.of(context)
-                    .pushNamed(SignInWithUsernamePasswordScreen.screenId);
-              },
-              style: OutlinedButton.styleFrom(
-                minimumSize: Size(260, 60),
-                backgroundColor: Colors.white,
-                side: BorderSide(color: Colors.grey.shade300),
-              ),
-              icon: FaIcon(FontAwesomeIcons.user, color: Color(0xFF1877F2)),
-              label: Text('Sign in with Username/Password',
-                  style: TextStyle(color: Colors.black87)),
-            ),
-          ),*/
           const SizedBox(
             height: 15,
           ),
@@ -230,7 +216,10 @@ class _LoginInButtonsState extends State<LoginInButtons> {
                     await storage.write(key: 'deviceId', value: identifier);
 
                 User? user = await Auth.signInWithGoogle(context: context);
-
+                final firebaseIdToken = await user!.getIdToken();
+                final firebaseUid = await user.uid;
+                storage.write(key: "firebase_token", value: firebaseIdToken);
+                storage.write(key: "firebase_user_id", value: firebaseUid);
 
                 if (user != null) {
                   authService.getAdminCredentialPhoneNumber(context, user);
@@ -249,7 +238,7 @@ class _LoginInButtonsState extends State<LoginInButtons> {
                   style: TextStyle(color: Colors.black87)),
             ),
           ),
-          /* SizedBox(
+          SizedBox(
             height: 15,
           ),
           Padding(
@@ -274,7 +263,7 @@ class _LoginInButtonsState extends State<LoginInButtons> {
               label: Text('Sign in with Facebook',
                   style: TextStyle(color: Colors.black87)),
             ),
-          ),*/
+          ),
         ],
       ),
     );

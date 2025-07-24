@@ -284,7 +284,7 @@ class _RegisterFormState extends State<RegisterForm> {
                   roundedButton(
                       context: context,
                       bgColor: AppColors.secondaryColor,
-                      text: 'Sign Up',
+                      text: 'Sign up',
                       textColor: AppColors.whiteColor,
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
@@ -334,14 +334,14 @@ class _RegisterFormState extends State<RegisterForm> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: Dimensions.font16,
-                color: AppColors.greyColor,
+                color: AppColors.primaryColor,
               ),
             ),
           ),
           const SizedBox(
             height: 15,
           ),
-          Text(
+          /* Text(
             'Or',
             style: TextStyle(
               fontSize: 18,
@@ -351,7 +351,7 @@ class _RegisterFormState extends State<RegisterForm> {
           const SizedBox(
             height: 15,
           ),
-          const SignUpButtons(),
+          const SignUpButtons(),*/
         ],
       ),
     );
